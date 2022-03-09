@@ -36,6 +36,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     .catch(() => null);
 
   // 認証情報が無い場合は、ログイン画面へ遷移させる
+  // ここfoodにも実装する
   if (!user) {
     return {
       redirect: {
