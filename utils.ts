@@ -1,11 +1,13 @@
-import type { FirebaseApp } from "firebase/app";
+import type { FirebaseApp} from "firebase/app";
 import type { Auth as FirebaseAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 import { getApps, initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword,createUserWithEmailAndPassword } from "firebase/auth";
 
 
-export const firebaseConfig = {
+
+export const firebaseConfig = initializeApp({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -13,13 +15,15 @@ export const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+});
 
 export const getFirebaseApp = (): FirebaseApp | undefined => {
   if (typeof window === "undefined") return; // バックエンドで実行されないようにする
 
-  return getApps()[0] || initializeApp(firebaseConfig);
+  return getApps()[0] || firebaseConfig;
 };
+
+export const db = getFirestore(firebaseConfig)
 
 export const getFirebaseAuth = (): FirebaseAuth => {
   return getAuth(getFirebaseApp());
