@@ -31,6 +31,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   type DisplayName = {
     id: string;
     name: string;
+    self_introduction: string | null;
   };
 
   const onLogout = async () => {
@@ -66,7 +67,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     onSnapshot(q, (querySnapshot) => {
       const lists: DisplayName[] = [];
       querySnapshot.forEach((doc) => {
-        lists.push({ name: doc.data().name, id: doc.id });
+        lists.push({ name: doc.data().name, id: doc.id,self_introduction: doc.data().self_introduction });
       });
       console.log("Current cities in CA: ", lists.join(", "));
       setDisplayNames([...lists]);
@@ -103,9 +104,10 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
           <input
             type="text"
             value={name}
+            placeholder="20文字以内"
             onChange={(e) => setName(e.target.value)}
           />
-          <button onClick={addDisplayName} disabled={displayNames.length >= 10}>
+          <button onClick={addDisplayName} disabled={displayNames.length >= 10 || name.length > 20}>
             add user
           </button>
         </>
@@ -136,6 +138,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
+  console.log("user")
 
   return {
     props: {
