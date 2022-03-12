@@ -1,8 +1,7 @@
 import { GetServerSideProps, NextPage } from "next";
-import { firebaseAdmin } from "../../firebaseAdmin";
 import { doc,getDoc } from "firebase/firestore";
 import { db, getFirebaseAuth } from "../../utils";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 
 export const Profile: NextPage<{ params: string,postOwnerId: string}> = ({params,postOwnerId}) => {
