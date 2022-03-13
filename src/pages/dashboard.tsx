@@ -8,6 +8,19 @@ import { logout } from "../../utils"; // 上記で実装したファイル
 import { firebaseAdmin } from "../../firebaseAdmin"; // この後に実装するファイル
 import { useEffect, useState } from "react";
 
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1"
+
+import {
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText
+} from "@mui/material";
+import { Delete } from "@mui/icons-material";
+
 import { db } from "../../utils";
 import {
   collection,
@@ -18,6 +31,7 @@ import {
   where,
   onSnapshot,
 } from "firebase/firestore";
+
 
 const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   email,
@@ -43,14 +57,14 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     setShowButton(!showButton);
   };
 
-  const deleteDisplayName = async(displayNameId: string)=>{
-    const confirm = window.confirm("本当に削除していいですか?")
-    if(!confirm){
-      return
+  const deleteDisplayName = async (displayNameId: string) => {
+    const confirm = window.confirm("本当に削除していいですか?");
+    if (!confirm) {
+      return;
     }
     const docRef = await deleteDoc(doc(db, "display_name", displayNameId));
     console.log("Document deleted with ID: ", displayNameId);
-  }
+  };
 
   const addDisplayName = async () => {
     const docRef = await addDoc(collection(db, "display_name"), {
@@ -64,11 +78,17 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   useEffect(() => {
     const displayNameRef = collection(db, "display_name");
     const q = query(displayNameRef, where("user", "==", uid));
+
     onSnapshot(q, (querySnapshot) => {
       const lists: DisplayName[] = [];
       querySnapshot.forEach((doc) => {
-        lists.push({ name: doc.data().name, id: doc.id,self_introduction: doc.data().self_introduction });
+        lists.push({
+          name: doc.data().name,
+          id: doc.id,
+          self_introduction: doc.data().self_introduction,
+        });
       });
+
       console.log("Current cities in CA: ", lists.join(", "));
       setDisplayNames([...lists]);
     });
@@ -80,38 +100,54 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 
       <h2>email: {email}</h2>
       <h3>plese add user(up to 10)</h3>
-      <ul>
-        {displayNames.map((displayName) => {
-          return (
-            <li key={displayName.id}>
-              <Link href={displayName.id}>
-                <a>
-                  {displayName.name}
-                </a>
-              </Link>
-              <button onClick={() => deleteDisplayName(displayName.id)}>
-                delete
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <IconButton>
+        <PersonAddAlt1 onClick={toggleInputButton} />
+      </IconButton>
       {showButton ? (
-        <button onClick={toggleInputButton}>+</button>
-      ) : (
         <>
-          <button onClick={toggleInputButton}>-</button>
           <input
             type="text"
             value={name}
             placeholder="20文字以内"
             onChange={(e) => setName(e.target.value)}
           />
-          <button onClick={addDisplayName} disabled={displayNames.length >= 10 || name.length > 20}>
+          <button
+            onClick={addDisplayName}
+            disabled={displayNames.length >= 10 || name.length > 20}
+          >
             add user
           </button>
         </>
+      ) : (
+        <></>
       )}
+      <List sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}>
+        {displayNames.map((displayName) => {
+          return (
+            <ListItem
+              key={displayName.id}
+              secondaryAction={
+                <IconButton aria-label="Delete">
+                  <Delete
+                    fontSize="large"
+                    onClick={() => deleteDisplayName(displayName.id)}
+                  />
+                </IconButton>
+              }
+              disablePadding
+            >
+              <Link href={displayName.id} passHref>
+                <ListItemButton>
+                  <ListItemIcon>
+                    <AccountCircle fontSize="large" />
+                  </ListItemIcon>
+                  <ListItemText primary={displayName.name} />
+                </ListItemButton>
+              </Link>
+            </ListItem>
+          );
+        })}
+      </List>
 
       <button onClick={onLogout}>Logout</button>
     </div>
@@ -138,7 +174,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
-  console.log("user")
+  console.log("user");
 
   return {
     props: {
