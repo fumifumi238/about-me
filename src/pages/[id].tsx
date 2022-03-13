@@ -4,7 +4,7 @@ import { db, getFirebaseAuth } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 
-export const Profile: NextPage<{ params: string,postOwnerId: string}> = ({params,postOwnerId}) => {
+export const Profile: NextPage<{ params: string,postOwnerId: string,displayName: string}> = ({params,postOwnerId,displayName}) => {
   const [owner,setOwner] = useState<boolean>(false)
     type Posts = {
       quention: string;
@@ -27,6 +27,7 @@ export const Profile: NextPage<{ params: string,postOwnerId: string}> = ({params
     <>
       <p>a</p>
       {owner?"i am owner":"no owner"}
+      <p>display_name: {displayName}</p>
       <p>user_id:{postOwnerId}</p>
       <p>display_name_id:{params}</p>
     </>
@@ -48,7 +49,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       params: id,
-      postOwnerId: docSnap.data().user
+      postOwnerId: docSnap.data().user,
+      displayName: docSnap.data().name,
     },
   };
 };
