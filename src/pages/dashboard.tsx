@@ -11,15 +11,14 @@ import { useEffect, useState } from "react";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1"
 
-import {
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText
-} from "@mui/material";
-import { Delete } from "@mui/icons-material";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+
+import Delete from "@mui/icons-material/Delete";
 
 import { db } from "../../utils";
 import {
