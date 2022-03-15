@@ -9,7 +9,7 @@ import { firebaseAdmin } from "../../firebaseAdmin"; // この後に実装する
 import { useEffect, useState } from "react";
 
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1"
+import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1";
 
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -17,10 +17,14 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 
 import Delete from "@mui/icons-material/Delete";
 
 import { db } from "../../utils";
+
 import {
   collection,
   addDoc,
@@ -31,7 +35,6 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 
-
 const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   email,
   uid,
@@ -40,6 +43,8 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   const [name, setName] = useState<string>("");
   const [showButton, setShowButton] = useState<boolean>(false);
   const [displayNames, setDisplayNames] = useState<DisplayName[]>([]);
+  const [inputError, setInputError] = useState<boolean>(false);
+  const [helperText, setHelperText] = useState<string>("");
 
   type DisplayName = {
     id: string;
@@ -48,6 +53,10 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   };
 
   const onLogout = async () => {
+    const confirm = window.confirm("ログアウトしますか?");
+    if (!confirm) {
+      return;
+    }
     await logout(); // ログアウトさせる
     router.push("/login"); // ログインページへ遷移させる
   };
@@ -65,6 +74,28 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     console.log("Document deleted with ID: ", displayNameId);
   };
 
+  const onInputName = (InputName: string) => {
+    setName(InputName);
+    const len = InputName.length;
+    console.log(len);
+    const min = 0;
+    const max = 20;
+    checkNameValidation(len > min, len < max);
+  };
+
+  const checkNameValidation = (min: boolean, max: boolean) => {
+    if (!min) {
+      setHelperText("空白にしないでください");
+      setInputError(true);
+    } else if (!max) {
+      setHelperText("20文字以内で入力してください");
+      setInputError(true);
+    } else {
+      setHelperText("");
+      setInputError(false);
+    }
+  };
+
   const addDisplayName = async () => {
     const docRef = await addDoc(collection(db, "display_name"), {
       name: name,
@@ -72,6 +103,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       recieve_question: false,
     });
     console.log("Document written with ID: ", docRef.id);
+    setName("");
   };
 
   useEffect(() => {
@@ -93,44 +125,109 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     });
   }, [uid]);
 
+  useEffect(() => {
+    if (displayNames.length >= 10) {
+      setHelperText("作成できるユーザーは10人までです");
+      setInputError(true);
+      return;
+    }
+    setHelperText("");
+    setInputError(false);
+  }, [displayNames]);
+
   return (
     <div>
-      <h1>Dashboard Pages</h1>
-
-      <h2>email: {email}</h2>
-      <h3>plese add user(up to 10)</h3>
-      <IconButton>
-        <PersonAddAlt1 onClick={toggleInputButton} />
-      </IconButton>
-      {showButton ? (
-        <>
-          <input
-            type="text"
-            value={name}
-            placeholder="20文字以内"
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button
-            onClick={addDisplayName}
-            disabled={displayNames.length >= 10 || name.length > 20}
-          >
-            add user
-          </button>
-        </>
-      ) : (
-        <></>
-      )}
-      <List sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}>
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
+        direction="column"
+      >
+        <Grid item>
+          <Grid container alignItems="center" spacing={2}>
+            <Grid item>
+              <h1>Welcome to About me</h1>
+            </Grid>
+            <Grid item>
+              <Button variant="outlined" onClick={onLogout}>
+                Log out
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item>
+          <h2>email: {email}</h2>
+        </Grid>
+        <Grid item>
+          <Grid container alignItems="center" spacing={0.5}>
+            <Grid item>
+              <h3>ユーザーは10人まで作成できます</h3>
+            </Grid>
+            <Grid item>
+              <IconButton>
+                <PersonAddAlt1 onClick={toggleInputButton} />
+              </IconButton>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item>
+          <Grid container alignItems="center">
+            {showButton ? (
+              <>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addDisplayName;
+                  }}
+                >
+                  <TextField
+                    error={inputError}
+                    type="text"
+                    label="Name"
+                    value={name}
+                    placeholder="20文字以内"
+                    variant="standard"
+                    helperText={helperText}
+                    onChange={(e) => onInputName(e.target.value)}
+                    disabled={displayNames.length >= 10}
+                  />
+                  <Button
+                    variant="contained"
+                    endIcon={<PersonAddAlt1 />}
+                    onClick={addDisplayName}
+                    type="submit"
+                    disabled={
+                      !name || displayNames.length >= 10 || name.length > 20
+                    }
+                  >
+                    作成
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <></>
+            )}
+          </Grid>
+        </Grid>
+      </Grid>
+      <List
+        sx={{
+          width: "100%",
+          maxWidth: 360,
+          bgcolor: "background.paper",
+          margin: "auto",
+        }}
+      >
         {displayNames.map((displayName) => {
           return (
             <ListItem
               key={displayName.id}
               secondaryAction={
-                <IconButton aria-label="Delete">
-                  <Delete
-                    fontSize="large"
-                    onClick={() => deleteDisplayName(displayName.id)}
-                  />
+                <IconButton
+                  aria-label="Delete"
+                  onClick={() => deleteDisplayName(displayName.id)}
+                >
+                  <Delete fontSize="large" />
                 </IconButton>
               }
               disablePadding
@@ -147,8 +244,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
           );
         })}
       </List>
-
-      <button onClick={onLogout}>Logout</button>
     </div>
   );
 };
