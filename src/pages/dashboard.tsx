@@ -57,8 +57,8 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     if (!confirm) {
       return;
     }
-    await logout(); // ログアウトさせる
-    router.push("/login"); // ログインページへ遷移させる
+    await logout();
+    router.push("/");
   };
 
   const toggleInputButton = () => {
