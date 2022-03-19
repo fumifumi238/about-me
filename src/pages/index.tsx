@@ -1,10 +1,12 @@
-import type { FormEvent } from "react";
+import type { FormEvent, SetStateAction } from "react";
 
 import { NextPage } from "next";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { login, signUp } from "../../utils"; // 上記で実装したファイル
+import { Validation } from "../components/validation";
+import { checkPasswordConfirmValidation } from "../components/validation";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -37,8 +39,35 @@ const Home: NextPage = () => {
   const [passwordConfirm, setPasswordConfirm] = useState<string>("");
   const [signInActive, setSignInActive] = useState<boolean>(true);
 
+  const [isEmailError, setIsEmailError] = useState<boolean>(false);
+  const [emailValdationText, setEmailValidationText] = useState<string>("");
+
+  const [isPasswordError, setIsPasswordError] = useState<boolean>(false);
+  const [passwordValdationText, setPasswordValidationText] =
+    useState<string>("");
+
+  const [isPasswordConfirmError, setIsPasswordConfirmError] =
+    useState<boolean>(false);
+  const [passwordConfirmValidationText, setPasswordConfirmValidationText] =
+    useState<string>("");
+
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault(); // デフォルトの<form />の挙動を無効にする
+    const { emailErrorText, passwordErrorText } = Validation(email, password);
+    if (emailErrorText || passwordErrorText) {
+      if (emailErrorText) {
+        setIsEmailError(true);
+        setEmailValidationText(emailErrorText);
+      }
+
+      if (passwordErrorText) {
+        setIsPasswordError(true);
+        setPasswordValidationText(passwordErrorText);
+      }
+
+      console.log(emailErrorText, passwordErrorText);
+      return;
+    }
     if (signInActive) {
       if (password !== passwordConfirm) {
         console.log("パスワードが一致しません");
@@ -50,6 +79,21 @@ const Home: NextPage = () => {
     }
     await login(email, password); // email・passwordを使ってログイン
     router.push("/dashboard"); // ダッシュボードページへ遷移させる
+  };
+
+  const onInputPasswordConfirm = (inputPasswordConfirm: string) => {
+    setPasswordConfirm(inputPasswordConfirm);
+
+    const passwordConfirmErrorText =
+      checkPasswordConfirmValidation(inputPasswordConfirm);
+
+    if (passwordConfirmErrorText) {
+      setIsPasswordConfirmError(true);
+      setPasswordConfirmValidationText(passwordConfirmErrorText);
+    } else {
+      setIsPasswordConfirmError(false);
+      setPasswordConfirmValidationText("");
+    }
   };
 
   return (
@@ -92,8 +136,11 @@ const Home: NextPage = () => {
                 <form onSubmit={onSubmit}>
                   <Grid item px={3} py={3}>
                     <TextField
+                      error={isEmailError}
+                      helperText={emailValdationText}
                       id="email"
                       label="メールアドレス"
+                      placeholder="sample@about.me"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -109,8 +156,11 @@ const Home: NextPage = () => {
                   </Grid>
                   <Grid item px={3} pt={1}>
                     <TextField
+                      error={isPasswordError}
+                      helperText={passwordValdationText}
                       id="password"
                       label="パスワード"
+                      placeholder="8～20文字"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -127,8 +177,11 @@ const Home: NextPage = () => {
                   {signInActive && (
                     <Grid item px={3} pt={4}>
                       <TextField
+                        error={isPasswordConfirmError}
+                        helperText={passwordConfirmValidationText}
                         id="passwordConfirm"
                         label="パスワード(確認用)"
+                        placeholder="8～20文字"
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -139,7 +192,7 @@ const Home: NextPage = () => {
                         type="password"
                         variant="standard"
                         value={passwordConfirm}
-                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                        onChange={(e) => onInputPasswordConfirm(e.target.value)}
                       />
                     </Grid>
                   )}
@@ -160,9 +213,6 @@ const Home: NextPage = () => {
               </Grid>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item>
-          <h1>a</h1>
         </Grid>
       </Grid>
     </div>
