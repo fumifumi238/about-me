@@ -263,13 +263,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (!user) {
     return {
       redirect: {
-        destination: "/login",
+        destination: "/",
         permanent: false,
       },
     };
   }
   console.log("user");
-
+// uidそのままは危険化かも
   return {
     props: {
       email: user.email,
