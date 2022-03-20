@@ -52,7 +52,7 @@ const Home: NextPage = () => {
     useState<string>("");
 
   const onSubmit = async (event: FormEvent) => {
-    event.preventDefault(); // デフォルトの<form />の挙動を無効にする
+    event.preventDefault();
     const { emailErrorText, passwordErrorText } = Validation(email, password);
     if (emailErrorText || passwordErrorText) {
       if (emailErrorText) {
