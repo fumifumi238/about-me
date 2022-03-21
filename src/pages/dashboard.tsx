@@ -251,7 +251,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const cookies = nookies.get(ctx);
   const session = cookies.session || "";
-
   // セッションIDを検証して、認証情報を取得する
   const user = await firebaseAdmin
     .auth()

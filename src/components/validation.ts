@@ -21,6 +21,9 @@ export const checkPasswordValidation = (password: string) => {
   if (password.length < 8) {
     const passwordErrorText = "パスワードは8字以上で入力してください";
     return passwordErrorText;
+  } else if (password.length > 20) {
+    const passwordErrorText = "パスワードは20字以内で入力してください";
+    return passwordErrorText;
   }
 };
 
