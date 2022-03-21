@@ -1,12 +1,14 @@
-import type { FormEvent, SetStateAction } from "react";
+import type { FormEvent } from "react";
 
 import { NextPage } from "next";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { login, signUp } from "../../utils"; // 上記で実装したファイル
-import { Validation } from "../components/validation";
-import { checkPasswordConfirmValidation } from "../components/validation";
+import {
+  checkPasswordValidation,
+  checkEmailValidation,
+} from "../components/validation";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -19,6 +21,7 @@ import Button from "@mui/material/Button";
 
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import { firebaseAdmin } from "../../firebaseAdmin";
 
 const Home: NextPage = () => {
   const useStyles = {
@@ -53,46 +56,53 @@ const Home: NextPage = () => {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const { emailErrorText, passwordErrorText } = Validation(email, password);
-    if (emailErrorText || passwordErrorText) {
-      if (emailErrorText) {
-        setIsEmailError(true);
-        setEmailValidationText(emailErrorText);
-      }
 
-      if (passwordErrorText) {
-        setIsPasswordError(true);
-        setPasswordValidationText(passwordErrorText);
-      }
-
-      console.log(emailErrorText, passwordErrorText);
-      return;
-    }
     if (signInActive) {
-      if (password !== passwordConfirm) {
-        console.log("パスワードが一致しません");
-        return;
+      const validation = checkPasswordConfirmValidation();
+      if (!validation) {
+        await signUp(email, password);
+        router.push("/dashboard");
       }
-      await signUp(email, password);
-      router.push("/dashboard");
       return;
     }
     await login(email, password); // email・passwordを使ってログイン
     router.push("/dashboard"); // ダッシュボードページへ遷移させる
   };
 
-  const onInputPasswordConfirm = (inputPasswordConfirm: string) => {
-    setPasswordConfirm(inputPasswordConfirm);
-
-    const passwordConfirmErrorText =
-      checkPasswordConfirmValidation(inputPasswordConfirm);
-
-    if (passwordConfirmErrorText) {
+  const checkPasswordConfirmValidation = () => {
+    if (password !== passwordConfirm) {
       setIsPasswordConfirmError(true);
-      setPasswordConfirmValidationText(passwordConfirmErrorText);
+      setPasswordConfirmValidationText("パスワードが一致しません");
+      return true;
     } else {
       setIsPasswordConfirmError(false);
       setPasswordConfirmValidationText("");
+      return false;
+    }
+  };
+
+  const onInputPassword = (inputPassword: string) => {
+    setPassword(inputPassword);
+    const passwordErrorText = checkPasswordValidation(inputPassword);
+
+    if (passwordErrorText) {
+      setIsPasswordError(true);
+      setPasswordValidationText(passwordErrorText);
+    } else {
+      setIsPasswordError(false);
+      setPasswordValidationText("");
+    }
+  };
+  const onInputEmail = (inputEmail: string) => {
+    setEmail(inputEmail);
+    const emailErrorText = checkEmailValidation(inputEmail);
+
+    if (emailErrorText) {
+      setIsEmailError(true);
+      setEmailValidationText(emailErrorText);
+    } else {
+      setIsEmailError(false);
+      setEmailValidationText("");
     }
   };
 
@@ -151,7 +161,7 @@ const Home: NextPage = () => {
                       type="email"
                       variant="standard"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => onInputEmail(e.target.value)}
                     />
                   </Grid>
                   <Grid item px={3} pt={1}>
@@ -171,7 +181,7 @@ const Home: NextPage = () => {
                       type="password"
                       variant="standard"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => onInputPassword(e.target.value)}
                     />
                   </Grid>
                   {signInActive && (
@@ -192,7 +202,7 @@ const Home: NextPage = () => {
                         type="password"
                         variant="standard"
                         value={passwordConfirm}
-                        onChange={(e) => onInputPasswordConfirm(e.target.value)}
+                        onChange={(e) => setPasswordConfirm(e.target.value)}
                       />
                     </Grid>
                   )}
@@ -200,7 +210,9 @@ const Home: NextPage = () => {
                     <div style={{ textAlign: "center" }}>
                       <Button
                         variant="contained"
-                        disabled={!email || !password}
+                        disabled={
+                          isEmailError || isPasswordError || !email || !password
+                        }
                         size="large"
                         type="submit"
                         onClick={onSubmit}

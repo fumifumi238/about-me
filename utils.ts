@@ -1,11 +1,13 @@
-import type { FirebaseApp} from "firebase/app";
+import type { FirebaseApp } from "firebase/app";
 import type { Auth as FirebaseAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 import { getApps, initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword,createUserWithEmailAndPassword } from "firebase/auth";
-
-
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 
 export const firebaseConfig = initializeApp({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,7 +25,7 @@ export const getFirebaseApp = (): FirebaseApp | undefined => {
   return getApps()[0] || firebaseConfig;
 };
 
-export const db = getFirestore(firebaseConfig)
+export const db = getFirestore(firebaseConfig);
 
 export const getFirebaseAuth = (): FirebaseAuth => {
   return getAuth(getFirebaseApp());
@@ -32,25 +34,25 @@ export const getFirebaseAuth = (): FirebaseAuth => {
 export const login = async (email: string, password: string) => {
   const auth = getFirebaseAuth();
 
-  const result = await signInWithEmailAndPassword(auth,email, password);
+  const result = await signInWithEmailAndPassword(auth, email, password);
 
   const id = await result.user.getIdToken();
 
   await fetch("/api/session", { method: "POST", body: JSON.stringify({ id }) });
 };
 
-export const signUp = async (email: string, password: string) =>{
-    const auth = getFirebaseAuth();
+export const signUp = async (email: string, password: string) => {
+  const auth = getFirebaseAuth();
 
-    const result = await createUserWithEmailAndPassword(auth, email, password);
+  const result = await createUserWithEmailAndPassword(auth, email, password);
 
-    const id = await result.user.getIdToken();
+  const id = await result.user.getIdToken();
 
-    await fetch("/api/session", {
-      method: "POST",
-      body: JSON.stringify({ id }),
-    });
-}
+  await fetch("/api/session", {
+    method: "POST",
+    body: JSON.stringify({ id }),
+  });
+};
 
 export const logout = async () => {
   await fetch("/api/sessionLogout", { method: "POST" });
