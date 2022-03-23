@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
+import { async } from "@firebase/util";
 
 export const firebaseConfig = initializeApp({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -34,24 +35,69 @@ export const getFirebaseAuth = (): FirebaseAuth => {
 export const login = async (email: string, password: string) => {
   const auth = getFirebaseAuth();
 
-  const result = await signInWithEmailAndPassword(auth, email, password);
+  await signInWithEmailAndPassword(auth, email, password)
+    .then(async (result) => {
+      const id = await result.user.getIdToken();
 
-  const id = await result.user.getIdToken();
-
-  await fetch("/api/session", { method: "POST", body: JSON.stringify({ id }) });
+      await fetch("/api/session", {
+        method: "POST",
+        body: JSON.stringify({ id }),
+      });
+    })
+    .catch((error) => {
+      switch (error.code) {
+        case "auth/invalid-email":
+          alert("メールアドレスの形式が間違っています");
+          break;
+        case "auth/user-disabled":
+          alert("無効なユーザーです");
+          break;
+        case "auth/user-not-found":
+          alert(
+            "そのメールアドレスは存在しません。アカウントを作成してください"
+          );
+          break;
+        case "auth/wrong-password":
+          alert("パスワードが違います");
+          break;
+        case "auth/too-many-requests":
+          alert(
+            "パスワードの使用回数を超えました。しばらくしてからログインしてください"
+          );
+          break;
+        default:
+          alert(error.code);
+      }
+    });
 };
 
 export const signUp = async (email: string, password: string) => {
   const auth = getFirebaseAuth();
 
-  const result = await createUserWithEmailAndPassword(auth, email, password);
+  await createUserWithEmailAndPassword(auth, email, password)
+    .then(async (result) => {
+      const id = await result.user.getIdToken();
 
-  const id = await result.user.getIdToken();
-
-  await fetch("/api/session", {
-    method: "POST",
-    body: JSON.stringify({ id }),
-  });
+      await fetch("/api/session", {
+        method: "POST",
+        body: JSON.stringify({ id }),
+      });
+    })
+    .catch((error) => {
+      switch (error.code) {
+        case "auth/invalid-email":
+          alert("メールアドレスの形式が間違っています");
+          break;
+        case "auth/email-already-in-use":
+          alert("すでに登録されたメールアドレスです。ログインしてください。");
+          break;
+        case "auth/invalid-password":
+          alert("パスワードは6文字以上で入力してください");
+          break;
+        default:
+          alert(error.code);
+      }
+    });
 };
 
 export const logout = async () => {
