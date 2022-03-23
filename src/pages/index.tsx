@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { login, signUp } from "../../utils"; // 上記で実装したファイル
+
 import {
   checkPasswordValidation,
   checkEmailValidation,
@@ -18,6 +19,9 @@ import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
@@ -40,6 +44,7 @@ const Home: NextPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirm, setPasswordConfirm] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [signInActive, setSignInActive] = useState<boolean>(true);
 
   const [isEmailError, setIsEmailError] = useState<boolean>(false);
@@ -144,8 +149,9 @@ const Home: NextPage = () => {
                 alignItems="center"
               >
                 <form onSubmit={onSubmit}>
-                  <Grid item px={3} py={3}>
+                  <Grid item py={3} mx={2}>
                     <TextField
+                      fullWidth
                       error={isEmailError}
                       helperText={emailValdationText}
                       id="email"
@@ -164,7 +170,7 @@ const Home: NextPage = () => {
                       onChange={(e) => onInputEmail(e.target.value)}
                     />
                   </Grid>
-                  <Grid item px={3} pt={1}>
+                  <Grid item mx={2} pt={1}>
                     <TextField
                       error={isPasswordError}
                       helperText={passwordValdationText}
@@ -177,15 +183,30 @@ const Home: NextPage = () => {
                             <LockIcon />
                           </InputAdornment>
                         ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
                       }}
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       variant="standard"
                       value={password}
                       onChange={(e) => onInputPassword(e.target.value)}
                     />
                   </Grid>
                   {signInActive && (
-                    <Grid item px={3} pt={4}>
+                    <Grid item mx={2} pt={4}>
                       <TextField
                         error={isPasswordConfirmError}
                         helperText={passwordConfirmValidationText}
@@ -198,8 +219,23 @@ const Home: NextPage = () => {
                               <LockIcon />
                             </InputAdornment>
                           ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label="toggle password visibility"
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
                         }}
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         variant="standard"
                         value={passwordConfirm}
                         onChange={(e) => setPasswordConfirm(e.target.value)}
