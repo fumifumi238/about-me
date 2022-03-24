@@ -71,13 +71,11 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       return;
     }
     const docRef = await deleteDoc(doc(db, "display_name", displayNameId));
-    console.log("Document deleted with ID: ", displayNameId);
   };
 
   const onInputName = (InputName: string) => {
     setName(InputName);
     const len = InputName.length;
-    console.log(len);
     const min = 0;
     const max = 20;
     checkNameValidation(len > min, len < max);
@@ -268,7 +266,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
   console.log("user");
-// uidそのままは危険化かも
+  // uidそのままは危険化かも
   return {
     props: {
       email: user.email,
