@@ -1,6 +1,6 @@
 import type { FirebaseApp } from "firebase/app";
 import type { Auth as FirebaseAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, serverTimestamp } from "firebase/firestore";
 
 import { getApps, initializeApp } from "firebase/app";
 import {
@@ -8,7 +8,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { async } from "@firebase/util";
 
 export const firebaseConfig = initializeApp({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -27,6 +26,8 @@ export const getFirebaseApp = (): FirebaseApp | undefined => {
 };
 
 export const db = getFirestore(firebaseConfig);
+
+export const timeStamp = serverTimestamp();
 
 export const getFirebaseAuth = (): FirebaseAuth => {
   return getAuth(getFirebaseApp());
