@@ -49,7 +49,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   type DisplayName = {
     id: string;
     name: string;
-    self_introduction: string | null;
   };
 
   const onLogout = async () => {
@@ -99,6 +98,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       name: name,
       user: uid,
       recieve_question: false,
+      self_introduction: `I am ${name} Nice to meet you`,
     });
     console.log("Document written with ID: ", docRef.id);
     setName("");
@@ -114,7 +114,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
         lists.push({
           name: doc.data().name,
           id: doc.id,
-          self_introduction: doc.data().self_introduction,
         });
       });
 
@@ -135,6 +134,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 
   return (
     <div>
+      {/* タイムスタンプを付ける */}
       <Grid
         container
         justifyContent="center"
@@ -162,8 +162,8 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
               <h3>ユーザーは10人まで作成できます</h3>
             </Grid>
             <Grid item>
-              <IconButton>
-                <PersonAddAlt1 onClick={toggleInputButton} />
+              <IconButton onClick={toggleInputButton}>
+                <PersonAddAlt1 />
               </IconButton>
             </Grid>
           </Grid>
