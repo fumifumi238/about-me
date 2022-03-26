@@ -10,6 +10,7 @@ import {
   orderBy,
   FieldValue,
   updateDoc,
+  getDocs,
 } from "firebase/firestore";
 import { db, getFirebaseAuth, timeStamp } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
@@ -18,7 +19,6 @@ import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import { async } from "@firebase/util";
 
 export const Profile: NextPage<{
   params: string;
@@ -39,6 +39,8 @@ export const Profile: NextPage<{
 
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
 
+  const [userLists, setUserLists] = useState<UserLists[]>([]);
+
   const answeredPosts = posts.filter((post) => {
     return post.answer;
   });
@@ -50,6 +52,11 @@ export const Profile: NextPage<{
     user: string;
     display_name: string;
     timestamp: FieldValue;
+  };
+
+  type UserLists = {
+    id: string;
+    name: string;
   };
 
   const style = {
@@ -116,20 +123,36 @@ export const Profile: NextPage<{
     });
   }, [params]);
 
+  useEffect(() => {
+    const q = query(
+      collection(db, "display_name"),
+      where("user", "==", postOwnerId)
+    );
+    const fetchData = onSnapshot(q, (querySnapshot) => {
+      const lists: UserLists[] = [];
+      querySnapshot.forEach((doc) => {
+        console.log(doc.id, " => ", doc.data().name);
+        lists.push({ name: doc.data().name, id: doc.id });
+      });
+      setUserLists([...lists]);
+    });
+    fetchData;
+  }, [postOwnerId]);
+
   const onProfileChange = async () => {
     const inputName = nameRef.current.value;
-    setIntroductionText(inputName);
+    setNameText(inputName);
+
     const inputIntroduction = introductionRef.current.value;
-    setNameText(inputIntroduction);
-    console.log(inputName);
-    console.log(inputIntroduction);
+    setIntroductionText(inputIntroduction);
+
     const profileRef = doc(db, "display_name", params);
 
-    // Set the "capital" field of the city 'DC'
     await updateDoc(profileRef, {
       name: inputName,
       self_introduction: inputIntroduction,
     });
+
     setProfileOpen(false);
   };
 
@@ -148,6 +171,15 @@ export const Profile: NextPage<{
       <Button onClick={() => setProfileOpen(true)}>
         プロフィールを編集する
       </Button>
+      <ul>
+        {userLists.map((user) => {
+          return (
+            <li key={user.id}>
+              <p>{user.name}</p>
+            </li>
+          );
+        })}
+      </ul>
       <Modal
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
@@ -169,9 +201,6 @@ export const Profile: NextPage<{
             id="introductiontext"
             cols={20}
             rows={20}
-            onChange={(e) => {
-              setIntroductionText(e.target.value);
-            }}
           ></textarea>
           <button onClick={() => setProfileOpen(false)} type="submit">
             キャンセル
