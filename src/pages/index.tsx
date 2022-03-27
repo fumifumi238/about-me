@@ -9,7 +9,7 @@ import { login, signUp } from "../../utils"; // 上記で実装したファイ�
 import {
   checkPasswordValidation,
   checkEmailValidation,
-} from "../components/validation";
+} from "../../validation";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
