@@ -19,13 +19,25 @@ import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
+import Tab from "@mui/material/Tab";
+
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
 
 export const Profile: NextPage<{
   params: string;
   postOwnerId: string;
   displayName: string;
   selfIntroduction: string;
-}> = ({ params, postOwnerId, displayName, selfIntroduction }) => {
+  recieveQuestion: boolean;
+}> = ({
+  params,
+  postOwnerId,
+  displayName,
+  selfIntroduction,
+  recieveQuestion,
+}) => {
   const nameRef = useRef<HTMLInputElement>(null!);
   const introductionRef = useRef<HTMLTextAreaElement>(null!);
 
@@ -41,9 +53,13 @@ export const Profile: NextPage<{
 
   const [userLists, setUserLists] = useState<UserLists[]>([]);
 
-  const answeredPosts = posts.filter((post) => {
-    return post.answer;
-  });
+  const [allowQuestion, setAllowQuestion] = useState<boolean>(recieveQuestion);
+
+  const [value, setValue] = useState<string>("1");
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue);
+  };
 
   type Posts = {
     id: string;
@@ -124,20 +140,23 @@ export const Profile: NextPage<{
   }, [params]);
 
   useEffect(() => {
-    const q = query(
-      collection(db, "display_name"),
-      where("user", "==", postOwnerId)
-    );
-    const fetchData = onSnapshot(q, (querySnapshot) => {
+    const fetchData = async () => {
+      const q = query(
+        collection(db, "display_name"),
+        where("user", "==", postOwnerId)
+      );
+      const querySnapshot = await getDocs(q);
       const lists: UserLists[] = [];
       querySnapshot.forEach((doc) => {
         console.log(doc.id, " => ", doc.data().name);
-        lists.push({ name: doc.data().name, id: doc.id });
+        if (doc.id !== params) {
+          lists.push({ name: doc.data().name, id: doc.id });
+        }
       });
       setUserLists([...lists]);
-    });
-    fetchData;
-  }, [postOwnerId]);
+    };
+    fetchData();
+  }, [params, postOwnerId]);
 
   const onProfileChange = async () => {
     const inputName = nameRef.current.value;
@@ -159,15 +178,57 @@ export const Profile: NextPage<{
   const check = (bool: boolean) => {
     return bool;
   };
+
+  type QuestionProps = {
+    posts: Posts[];
+    answered: boolean;
+  };
+  const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
+    const newPosts = posts.filter((post) => {
+      if (answered) {
+        return post.answer !== "";
+      }
+      return post.answer === "";
+    });
+    return (
+      <>
+        <ul>
+          {newPosts.map((post) => {
+            return (
+              <li key={post.id}>
+                <p>{post.question}</p>
+                <p>{post.answer}</p>
+                <p>{post.user}</p>
+                <p>{post.display_name}</p>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    );
+  };
+  const onCheckBoxChange = async (bool: boolean) => {
+    setAllowQuestion(bool);
+    const profileRef = doc(db, "display_name", params);
+    await updateDoc(profileRef, {
+      recieve_question: bool,
+    });
+    console.log(bool);
+  };
   return (
     <>
       {owner ? "i am owner" : "no owner"}
-      <p>display_name: {displayName}</p>
-      <p>user_id:{postOwnerId}</p>
-      <p>display_name_id:{params}</p>
-      <p>{selfIntroduction}</p>
-      <p>{introductionText}</p>
-      <p>{nameText}</p>
+      <p>自己紹介　{introductionText}</p>
+      <p>名前　{nameText}</p>
+      <div>
+        <input
+          type="checkbox"
+          id="checkbox"
+          checked={allowQuestion}
+          onChange={(e) => onCheckBoxChange(e.target.checked)}
+        />
+        <label htmlFor="checkbox">他の人からの質問を受け取る</label>
+      </div>
       <Button onClick={() => setProfileOpen(true)}>
         プロフィールを編集する
       </Button>
@@ -235,19 +296,22 @@ export const Profile: NextPage<{
           submit
         </button>
       </form>
-      <p>解答済みの質問</p>
-      <ul>
-        {answeredPosts.map((post) => {
-          return (
-            <li key={post.id}>
-              <p>{post.question}</p>
-              <p>{post.answer}</p>
-              <p>{post.user}</p>
-              <p>{post.display_name}</p>
-            </li>
-          );
-        })}
-      </ul>
+      <Box sx={{ width: "50%", typography: "body1" }}>
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleChange} aria-label="lab API tabs example">
+              <Tab label="回答済み" value="1" />
+              <Tab label="未回答" value="2" />
+            </TabList>
+          </Box>
+          <TabPanel value="1">
+            <Questions posts={posts} answered={true} />
+          </TabPanel>
+          <TabPanel value="2">
+            <Questions posts={posts} answered={false} />
+          </TabPanel>
+        </TabContext>
+      </Box>
     </>
   );
 };
@@ -269,6 +333,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       postOwnerId: docSnap.data().user,
       displayName: docSnap.data().name,
       selfIntroduction: docSnap.data().self_introduction,
+      recieveQuestion: docSnap.data().recieve_question,
     },
   };
 };
