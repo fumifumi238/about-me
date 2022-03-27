@@ -19,11 +19,19 @@ import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import Tab from "@mui/material/Tab";
+import Drawer from "@mui/material/Drawer";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
+import IconButton from "@mui/material/IconButton";
 
+import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+
+import Questions from "../components/Questions";
+import { Posts, UserLists } from "../../types/type";
 
 export const Profile: NextPage<{
   params: string;
@@ -53,26 +61,14 @@ export const Profile: NextPage<{
 
   const [userLists, setUserLists] = useState<UserLists[]>([]);
 
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
   const [allowQuestion, setAllowQuestion] = useState<boolean>(recieveQuestion);
 
   const [value, setValue] = useState<string>("1");
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  type Posts = {
-    id: string;
-    question: string;
-    answer?: string | null;
-    user: string;
-    display_name: string;
-    timestamp: FieldValue;
-  };
-
-  type UserLists = {
-    id: string;
-    name: string;
   };
 
   const style = {
@@ -179,34 +175,6 @@ export const Profile: NextPage<{
     return bool;
   };
 
-  type QuestionProps = {
-    posts: Posts[];
-    answered: boolean;
-  };
-  const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
-    const newPosts = posts.filter((post) => {
-      if (answered) {
-        return post.answer !== "";
-      }
-      return post.answer === "";
-    });
-    return (
-      <>
-        <ul>
-          {newPosts.map((post) => {
-            return (
-              <li key={post.id}>
-                <p>{post.question}</p>
-                <p>{post.answer}</p>
-                <p>{post.user}</p>
-                <p>{post.display_name}</p>
-              </li>
-            );
-          })}
-        </ul>
-      </>
-    );
-  };
   const onCheckBoxChange = async (bool: boolean) => {
     setAllowQuestion(bool);
     const profileRef = doc(db, "display_name", params);
@@ -232,15 +200,32 @@ export const Profile: NextPage<{
       <Button onClick={() => setProfileOpen(true)}>
         プロフィールを編集する
       </Button>
-      <ul>
-        {userLists.map((user) => {
-          return (
-            <li key={user.id}>
-              <p>{user.name}</p>
-            </li>
-          );
-        })}
-      </ul>
+      <IconButton onClick={() => setMenuOpen(!menuOpen)}>
+        <MenuIcon />
+      </IconButton>
+      <Drawer
+        anchor="right"
+        open={menuOpen}
+        onClose={() => setMenuOpen(!menuOpen)}
+      >
+        <List>
+          <ListItem button>
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary="logout" />
+          </ListItem>
+        </List>
+        <ul>
+          {userLists.map((user) => {
+            return (
+              <li key={user.id}>
+                <p>{user.name}</p>
+              </li>
+            );
+          })}
+        </ul>
+      </Drawer>
       <Modal
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
@@ -271,7 +256,7 @@ export const Profile: NextPage<{
           </button>
         </Box>
       </Modal>
-      {/* まだ答えてない質問,質問ボタン */}
+      {/* 質問ボタン */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -296,7 +281,7 @@ export const Profile: NextPage<{
           submit
         </button>
       </form>
-      <Box sx={{ width: "50%", typography: "body1" }}>
+      <Box sx={{ width: "100%", typography: "body1" }}>
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleChange} aria-label="lab API tabs example">
