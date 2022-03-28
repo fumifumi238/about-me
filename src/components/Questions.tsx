@@ -42,9 +42,10 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                   sx={{
                     width: "100%",
                     flexShrink: 0,
-                    wordBreak: "break-word",
+                    fontSize: "1rem",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
                   }}
-                  variant="h5"
                 >
                   {post.question}
                 </Typography>

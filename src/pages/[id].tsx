@@ -8,30 +8,44 @@ import {
   where,
   onSnapshot,
   orderBy,
-  FieldValue,
   updateDoc,
   getDocs,
 } from "firebase/firestore";
-import { db, getFirebaseAuth, timeStamp } from "../../utils";
+import { db, getFirebaseAuth, logout, timeStamp } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useRef, useState } from "react";
+
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
+import ShareIcon from "@mui/icons-material/Share";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
 import Drawer from "@mui/material/Drawer";
-import LogoutIcon from "@mui/icons-material/Logout";
-import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import { Checkbox, FormControlLabel, FormGroup, Paper } from "@mui/material";
 
 import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Card,
+  CardActions,
+  CardContent,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 
 import Questions from "../components/Questions";
 import { Posts, UserLists } from "../../types/type";
+import { useRouter } from "next/router";
 
 export const Profile: NextPage<{
   params: string;
@@ -47,7 +61,7 @@ export const Profile: NextPage<{
   recieveQuestion,
 }) => {
   const nameRef = useRef<HTMLInputElement>(null!);
-  const introductionRef = useRef<HTMLTextAreaElement>(null!);
+  const introductionRef = useRef<HTMLInputElement>(null!);
 
   const [owner, setOwner] = useState<boolean>(false);
   const [question, setQuestion] = useState<string>("");
@@ -67,6 +81,8 @@ export const Profile: NextPage<{
 
   const [value, setValue] = useState<string>("1");
 
+  const router = useRouter();
+
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
@@ -76,11 +92,20 @@ export const Profile: NextPage<{
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: "50%",
+    width: "33%",
     bgcolor: "background.paper",
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
+  };
+
+  const onLogout = async () => {
+    const confirm = window.confirm("ログアウトしますか?");
+    if (!confirm) {
+      return;
+    }
+    await logout();
+    router.push("/");
   };
 
   const addPost = async () => {
@@ -160,6 +185,7 @@ export const Profile: NextPage<{
 
     const inputIntroduction = introductionRef.current.value;
     setIntroductionText(inputIntroduction);
+    console.log(inputName, inputIntroduction);
 
     const profileRef = doc(db, "display_name", params);
 
@@ -175,6 +201,17 @@ export const Profile: NextPage<{
     return bool;
   };
 
+  const copyTextToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      function () {
+        console.log("Async: Copying to clipboard was successful!");
+      },
+      function (err) {
+        console.error("Async: Could not copy text: ", err);
+      }
+    );
+  };
+
   const onCheckBoxChange = async (bool: boolean) => {
     setAllowQuestion(bool);
     const profileRef = doc(db, "display_name", params);
@@ -183,48 +220,102 @@ export const Profile: NextPage<{
     });
     console.log(bool);
   };
+
+  const bull = (
+    <Box
+      component="span"
+      sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
+    ></Box>
+  );
   return (
     <>
       {owner ? "i am owner" : "no owner"}
+      <Grid container alignItems="center" justifyContent="center">
+        <Grid item>
+          <Paper variant="outlined">
+            <Card sx={{ minWidth: 275 }}>
+              <CardContent sx={{ pb: 0 }}>
+                <IconButton onClick={() => setMenuOpen(!menuOpen)}>
+                  <MenuIcon />
+                </IconButton>
+                <Typography
+                  sx={{ fontSize: 14 }}
+                  color="text.secondary"
+                  gutterBottom
+                >
+                  Word of the Day
+                </Typography>
+                <Typography variant="h5" component="div">
+                  be{bull}nev{bull}o{bull}lent
+                </Typography>
+                <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                  adjective
+                </Typography>
+                <Typography variant="body2">
+                  well meaning and kindly.
+                  <br />
+                  {'"a benevolent smile"'}
+                </Typography>
+                <Typography>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={allowQuestion}
+                          size="small"
+                          onChange={(e) => onCheckBoxChange(e.target.checked)}
+                        />
+                      }
+                      label="他の人からの質問を受け取る"
+                    />
+                  </FormGroup>
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  onClick={() => setProfileOpen(true)}
+                  sx={{ margin: "auto" }}
+                  variant="outlined"
+                >
+                  プロフィールを編集する
+                </Button>
+              </CardActions>
+              <CardActions>
+                <IconButton sx={{ margin: "0 0 0 auto" }}>
+                  <ShareIcon />
+                </IconButton>
+              </CardActions>
+            </Card>
+          </Paper>
+        </Grid>
+      </Grid>
+
       <p>自己紹介　{introductionText}</p>
       <p>名前　{nameText}</p>
-      <div>
-        <input
-          type="checkbox"
-          id="checkbox"
-          checked={allowQuestion}
-          onChange={(e) => onCheckBoxChange(e.target.checked)}
-        />
-        <label htmlFor="checkbox">他の人からの質問を受け取る</label>
-      </div>
-      <Button onClick={() => setProfileOpen(true)}>
-        プロフィールを編集する
-      </Button>
-      <IconButton onClick={() => setMenuOpen(!menuOpen)}>
-        <MenuIcon />
-      </IconButton>
       <Drawer
         anchor="right"
         open={menuOpen}
         onClose={() => setMenuOpen(!menuOpen)}
       >
-        <List>
-          <ListItem button>
-            <ListItemIcon>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="logout" />
-          </ListItem>
-        </List>
-        <ul>
-          {userLists.map((user) => {
-            return (
-              <li key={user.id}>
-                <p>{user.name}</p>
-              </li>
-            );
-          })}
-        </ul>
+        <Box sx={{ width: 400 }}>
+          <List>
+            <ListItem button onClick={onLogout}>
+              <ListItemIcon>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText primary="logout" />
+            </ListItem>
+          </List>
+          <ul>
+            {userLists.map((user) => {
+              return (
+                <li key={user.id}>
+                  <p>{user.name}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </Box>
       </Drawer>
       <Modal
         open={profileOpen}
@@ -233,27 +324,53 @@ export const Profile: NextPage<{
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <label htmlFor="nametext">名前</label>
-          <input
-            type="text"
-            defaultValue={nameText}
-            ref={nameRef}
-            id="nametext"
-          />
-          <label htmlFor="introductiontext">自己紹介</label>
-          <textarea
-            defaultValue={introductionText}
-            ref={introductionRef}
-            id="introductiontext"
-            cols={20}
-            rows={20}
-          ></textarea>
-          <button onClick={() => setProfileOpen(false)} type="submit">
-            キャンセル
-          </button>
-          <button onClick={onProfileChange} disabled={check(false)}>
-            保存
-          </button>
+          <Grid
+            container
+            direction="row"
+            justifyContent="space-between"
+            alignItems="flex-start"
+          >
+            <Grid item>
+              <Button variant="text" onClick={() => setProfileOpen(false)}>
+                Cancel
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="text"
+                onClick={onProfileChange}
+                disabled={check(false)}
+              >
+                Save
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid
+            container
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Grid item py={2}>
+              <TextField
+                label="名前"
+                type="text"
+                defaultValue={nameText}
+                inputRef={nameRef}
+                id="nametext"
+              />
+            </Grid>
+            <Grid item>
+              <TextField
+                label="自己紹介"
+                multiline
+                minRows={4}
+                defaultValue={introductionText}
+                inputRef={introductionRef}
+                id="introductiontext"
+              />
+            </Grid>
+          </Grid>
         </Box>
       </Modal>
       {/* 質問ボタン */}
