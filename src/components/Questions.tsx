@@ -16,13 +16,13 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
-
   const newPosts = posts.filter((post) => {
     if (answered) {
       return post.answer !== "";
     }
     return post.answer === "";
   });
+
   return (
     <>
       <Box mx={3}>
@@ -40,18 +40,29 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
               >
                 <Typography
                   sx={{
-                    width: "100%",
                     flexShrink: 0,
+                    flexWrap: "wrap",
                     fontSize: "1rem",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
+                    p: 2,
+                    width: "100%",
+                    wordBreak: "break-word",
                   }}
                 >
-                  {post.question}
+                  {expanded === post.id || post.question.length <= 100
+                    ? post.question
+                    : `${post.question.slice(0, 100)} ...`}
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography>{post.answer}</Typography>
+                {post.answer ? (
+                  <Typography sx={{ wordBreak: "break-word" }}>
+                    {post.answer}
+                  </Typography>
+                ) : (
+                  <div>
+                    <input type="text" />
+                  </div>
+                )}
               </AccordionDetails>
             </Accordion>
           );

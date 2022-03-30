@@ -1,10 +1,11 @@
-import type { FormEvent } from "react";
+import { FormEvent, useEffect } from "react";
 
-import { NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { login, signUp } from "../../utils"; // 上記で実装したファイル
+import nookies from "nookies";
 
 import {
   checkPasswordValidation,
@@ -265,6 +266,32 @@ const Home: NextPage = () => {
       </Grid>
     </div>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const cookies = nookies.get(ctx);
+  const session = cookies.session || "";
+  // セッションIDを検証して、認証情報を取得する
+  const user = await firebaseAdmin
+    .auth()
+    .verifySessionCookie(session, true)
+    .catch(() => null);
+
+  // 認証情報が無い場合は、ログイン画面へ遷移させる
+  // ここfoodにも実装する
+  if (user) {
+    return {
+      redirect: {
+        destination: "/dashboard",
+        permanent: false,
+      },
+    };
+  }
+  console.log("user");
+  // uidそのままは危険化かも
+  return {
+    props: {},
+  };
 };
 
 export default Home;

@@ -17,7 +17,8 @@ import { useEffect, useRef, useState } from "react";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
-import ShareIcon from "@mui/icons-material/Share";
+import Tooltip from "@mui/material/Tooltip";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -26,6 +27,7 @@ import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import { Checkbox, FormControlLabel, FormGroup, Paper } from "@mui/material";
+import ErrorMessage from "../components/ErrorMessage";
 
 import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
@@ -83,6 +85,14 @@ export const Profile: NextPage<{
 
   const router = useRouter();
 
+  const [count, setCount] = useState<number>(200 - introductionText.length);
+
+  const [clickCopy, setClickCopy] = useState<boolean>(false);
+
+  const [errorText, setErrorText] = useState<string>("");
+
+  const url: string = `https://localhost:3000/${params}`;
+
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
@@ -93,6 +103,7 @@ export const Profile: NextPage<{
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: "33%",
+    minWidth: 275,
     bgcolor: "background.paper",
     border: "2px solid #000",
     boxShadow: 24,
@@ -106,6 +117,10 @@ export const Profile: NextPage<{
     }
     await logout();
     router.push("/");
+  };
+
+  const countWordLength = (maxLength: number, currentLength: number) => {
+    setCount(maxLength - currentLength);
   };
 
   const addPost = async () => {
@@ -181,9 +196,14 @@ export const Profile: NextPage<{
 
   const onProfileChange = async () => {
     const inputName = nameRef.current.value;
-    setNameText(inputName);
-
     const inputIntroduction = introductionRef.current.value;
+
+    if (inputName === nameText && inputIntroduction === introductionText) {
+      setProfileOpen(false);
+      console.log("プロフィール変化なし");
+      return;
+    }
+    setNameText(inputName);
     setIntroductionText(inputIntroduction);
     console.log(inputName, inputIntroduction);
 
@@ -202,11 +222,16 @@ export const Profile: NextPage<{
   };
 
   const copyTextToClipboard = (text: string) => {
+    setClickCopy(false);
     navigator.clipboard.writeText(text).then(
       function () {
         console.log("Async: Copying to clipboard was successful!");
+        setErrorText("URL がコピーされました。");
+        setClickCopy(true);
       },
       function (err) {
+        setErrorText("コピーできませんでした。");
+        setClickCopy(true);
         console.error("Async: Could not copy text: ", err);
       }
     );
@@ -230,6 +255,7 @@ export const Profile: NextPage<{
   return (
     <>
       {owner ? "i am owner" : "no owner"}
+      {clickCopy && <ErrorMessage text={errorText} />}
       <Grid container alignItems="center" justifyContent="center">
         <Grid item>
           <Paper variant="outlined">
@@ -281,9 +307,20 @@ export const Profile: NextPage<{
                 </Button>
               </CardActions>
               <CardActions>
-                <IconButton sx={{ margin: "0 0 0 auto" }}>
-                  <ShareIcon />
-                </IconButton>
+                <input
+                  type="text"
+                  value={url}
+                  readOnly
+                  style={{ width: "80%" }}
+                />
+                <Tooltip title="copy">
+                  <IconButton
+                    sx={{ margin: "0 0 0 auto" }}
+                    onClick={() => copyTextToClipboard(url)}
+                  >
+                    <ContentCopyIcon />
+                  </IconButton>
+                </Tooltip>
               </CardActions>
             </Card>
           </Paper>
@@ -297,7 +334,7 @@ export const Profile: NextPage<{
         open={menuOpen}
         onClose={() => setMenuOpen(!menuOpen)}
       >
-        <Box sx={{ width: 400 }}>
+        <Box sx={{ width: "50%" }}>
           <List>
             <ListItem button onClick={onLogout}>
               <ListItemIcon>
@@ -364,12 +401,14 @@ export const Profile: NextPage<{
               <TextField
                 label="自己紹介"
                 multiline
-                minRows={4}
+                rows={10}
                 defaultValue={introductionText}
                 inputRef={introductionRef}
                 id="introductiontext"
+                onChange={(e) => countWordLength(200, e.target.value.length)}
               />
             </Grid>
+            <p style={{ margin: "0 0 0 auto" }}>残り: {count} 字</p>
           </Grid>
         </Box>
       </Modal>
@@ -401,7 +440,11 @@ export const Profile: NextPage<{
       <Box sx={{ width: "100%", typography: "body1" }}>
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList onChange={handleChange} aria-label="lab API tabs example">
+            <TabList
+              onChange={handleChange}
+              aria-label="lab API tabs example"
+              centered
+            >
               <Tab label="回答済み" value="1" />
               <Tab label="未回答" value="2" />
             </TabList>
@@ -439,5 +482,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
+
+
 
 export default Profile;
