@@ -4,13 +4,18 @@ import {
   Typography,
   AccordionDetails,
   Box,
+  IconButton,
+  TextField,
+  Button,
 } from "@mui/material";
 import { useState } from "react";
 import { QuestionProps } from "../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Delete } from "@mui/icons-material";
 
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
+  const [postAnswer, setPostAnswer] = useState<string>("");
 
   const handleChange =
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -23,6 +28,13 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
     return post.answer === "";
   });
 
+  const onSave = () => {
+    const confirm = window.confirm("この内容で良いですか?");
+    if (confirm) {
+      console.log(postAnswer);
+    }
+    setPostAnswer("");
+  };
   return (
     <>
       <Box mx={3}>
@@ -59,10 +71,27 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                     {post.answer}
                   </Typography>
                 ) : (
-                  <div>
-                    <input type="text" />
-                  </div>
+                  <>
+                    <TextField
+                      label="Answer"
+                      placeholder="回答を入力してください"
+                      multiline
+                      minRows={2}
+                      id="answertext"
+                      value={postAnswer}
+                      onChange={(e) => {
+                        setPostAnswer(e.target.value);
+                      }}
+                      // onChange={(e) =>
+                      //   countWordLength(200, e.target.value.length)
+                      // }
+                    />
+                    <Button onClick={onSave}>save</Button>
+                  </>
                 )}
+                <IconButton aria-label="Delete">
+                  <Delete />
+                </IconButton>
               </AccordionDetails>
             </Accordion>
           );
