@@ -10,7 +10,7 @@ import nookies from "nookies";
 import {
   checkPasswordValidation,
   checkEmailValidation,
-} from "../../validation";
+} from "../utils/validation";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";

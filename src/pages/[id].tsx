@@ -46,6 +46,7 @@ import {
 } from "@mui/material";
 
 import Questions from "../components/Questions";
+import Counter from "../components/Counter";
 import { Posts, UserLists } from "../../types/type";
 import { useRouter } from "next/router";
 
@@ -85,7 +86,9 @@ export const Profile: NextPage<{
 
   const router = useRouter();
 
-  const [count, setCount] = useState<number>(200 - introductionText.length);
+  const [introductionCount, setintroductionCount] = useState<number>(
+    introductionText.length
+  );
 
   const [clickCopy, setClickCopy] = useState<boolean>(false);
 
@@ -117,10 +120,6 @@ export const Profile: NextPage<{
     }
     await logout();
     router.push("/");
-  };
-
-  const countWordLength = (maxLength: number, currentLength: number) => {
-    setCount(maxLength - currentLength);
   };
 
   const addPost = async () => {
@@ -261,9 +260,14 @@ export const Profile: NextPage<{
           <Paper variant="outlined">
             <Card sx={{ minWidth: 275 }}>
               <CardContent sx={{ pb: 0 }}>
-                <IconButton onClick={() => setMenuOpen(!menuOpen)}>
-                  <MenuIcon />
-                </IconButton>
+                <Grid container alignItems="flex-end">
+                  <Grid item></Grid>
+                </Grid>
+                <Box sx={{ textAlign: "right" }}>
+                  <IconButton onClick={() => setMenuOpen(!menuOpen)}>
+                    <MenuIcon />
+                  </IconButton>
+                </Box>
                 <Typography
                   sx={{ fontSize: 14 }}
                   color="text.secondary"
@@ -334,7 +338,7 @@ export const Profile: NextPage<{
         open={menuOpen}
         onClose={() => setMenuOpen(!menuOpen)}
       >
-        <Box sx={{ width: "50%" }}>
+        <Box sx={{ width: "33vw" }}>
           <List>
             <ListItem button onClick={onLogout}>
               <ListItemIcon>
@@ -405,10 +409,12 @@ export const Profile: NextPage<{
                 defaultValue={introductionText}
                 inputRef={introductionRef}
                 id="introductiontext"
-                onChange={(e) => countWordLength(200, e.target.value.length)}
+                onChange={(e) => setintroductionCount(e.target.value.length)}
               />
             </Grid>
-            <p style={{ margin: "0 0 0 auto" }}>残り: {count} 字</p>
+            <Box sx={{ margin: "0 0 0 auto" }}>
+              <Counter maxLength={200} currentLength={introductionCount} />
+            </Box>
           </Grid>
         </Box>
       </Modal>
@@ -477,12 +483,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       params: id,
       postOwnerId: docSnap.data().user,
       displayName: docSnap.data().name,
-      selfIntroduction: docSnap.data().self_introduction,
+      selfIntroduction: docSnap.data().self_introduction || null,
       recieveQuestion: docSnap.data().recieve_question,
     },
   };
 };
-
-
 
 export default Profile;

@@ -1,7 +1,7 @@
 import Snackbar from "@mui/material/Snackbar";
 import { useEffect, useState } from "react";
 
-export const ErrorMessage: React.FC<{ text: string }> = ({ text }) => {
+const ErrorMessage: React.FC<{ text: string }> = ({ text }) => {
   const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {

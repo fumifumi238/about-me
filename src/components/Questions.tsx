@@ -7,11 +7,14 @@ import {
   IconButton,
   TextField,
   Button,
+  Grid,
 } from "@mui/material";
 import { useState } from "react";
 import { QuestionProps } from "../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Delete } from "@mui/icons-material";
+
+import Counter from "./Counter";
 
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
@@ -72,26 +75,45 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                   </Typography>
                 ) : (
                   <>
-                    <TextField
-                      label="Answer"
-                      placeholder="回答を入力してください"
-                      multiline
-                      minRows={2}
-                      id="answertext"
-                      value={postAnswer}
-                      onChange={(e) => {
-                        setPostAnswer(e.target.value);
-                      }}
-                      // onChange={(e) =>
-                      //   countWordLength(200, e.target.value.length)
-                      // }
-                    />
-                    <Button onClick={onSave}>save</Button>
+                    <Grid container justifyContent="center">
+                      <Grid item>
+                        <TextField
+                          label="Answer"
+                          placeholder="回答を入力してください"
+                          multiline
+                          minRows={3}
+                          id="answertext"
+                          value={postAnswer}
+                          onChange={(e) => {
+                            setPostAnswer(e.target.value);
+                          }}
+                          sx={{ width: "50vw" }}
+                        />
+                      </Grid>
+                    </Grid>
+                    <Box sx={{ mr: 3 }}>
+                      <Box sx={{ textAlign: "right" }}>
+                        <Counter
+                          maxLength={400}
+                          currentLength={postAnswer.length}
+                        />
+                      </Box>
+                      <Box sx={{ textAlign: "right" }}>
+                        <Button onClick={onSave}>save</Button>
+                        <IconButton aria-label="Delete">
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    </Box>
                   </>
                 )}
-                <IconButton aria-label="Delete">
-                  <Delete />
-                </IconButton>
+                {post.answer && (
+                  <Box sx={{ textAlign: "right" }}>
+                    <IconButton aria-label="Delete">
+                      <Delete />
+                    </IconButton>
+                  </Box>
+                )}
               </AccordionDetails>
             </Accordion>
           );
