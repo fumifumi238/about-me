@@ -50,6 +50,8 @@ import Counter from "../components/Counter";
 import { Posts, UserLists } from "../../types/type";
 import { useRouter } from "next/router";
 
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+
 export const Profile: NextPage<{
   params: string;
   postOwnerId: string;
@@ -245,6 +247,8 @@ export const Profile: NextPage<{
     console.log(bool);
   };
 
+  const onAddAnswer = async () => {};
+
   const bull = (
     <Box
       component="span"
@@ -275,7 +279,7 @@ export const Profile: NextPage<{
                 >
                   Word of the Day
                 </Typography>
-                <Typography variant="h5" component="div">
+                <Typography variant="h5">
                   be{bull}nev{bull}o{bull}lent
                 </Typography>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary">
@@ -333,6 +337,13 @@ export const Profile: NextPage<{
 
       <p>自己紹介　{introductionText}</p>
       <p>名前　{nameText}</p>
+      <Box sx={{ textAlign: "center" }}>
+        <IconButton>
+          <QuestionAnswerIcon sx={{ fontSize: 50 }} />
+        </IconButton>
+        {/* 質問募集中 */}
+        <Typography variant="h5">質問を投稿しよう</Typography>
+      </Box>
       <Drawer
         anchor="right"
         open={menuOpen}
