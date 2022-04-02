@@ -16,7 +16,7 @@ const ErrorMessage: React.FC<{ text: string }> = ({ text }) => {
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={open}
-        autoHideDuration={2000}
+        autoHideDuration={1200}
         onClose={handleClose}
         message={text}
       />

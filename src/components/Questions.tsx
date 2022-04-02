@@ -13,6 +13,7 @@ import { useState } from "react";
 import { QuestionProps } from "../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Delete } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "./Counter";
 
@@ -109,6 +110,9 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                 )}
                 {post.answer && (
                   <Box sx={{ textAlign: "right" }}>
+                    <IconButton aria-label="Edit">
+                      <EditIcon />
+                    </IconButton>
                     <IconButton aria-label="Delete">
                       <Delete />
                     </IconButton>
