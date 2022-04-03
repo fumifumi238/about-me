@@ -16,6 +16,8 @@ import { Delete } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "./Counter";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../utils";
 
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
@@ -32,10 +34,15 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
     return post.answer === "";
   });
 
-  const onSave = () => {
+  const onSave = async (id: string) => {
     const confirm = window.confirm("この内容で良いですか?");
     if (confirm) {
       console.log(postAnswer);
+      const questionRef = doc(db, "posts", id);
+
+      await updateDoc(questionRef, {
+        answer: postAnswer,
+      });
     }
     setPostAnswer("");
   };
@@ -100,7 +107,12 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                         />
                       </Box>
                       <Box sx={{ textAlign: "right" }}>
-                        <Button onClick={onSave}>save</Button>
+                        <Button
+                          onClick={() => onSave(post.id)}
+                          disabled={!postAnswer || postAnswer.length > 400}
+                        >
+                          save
+                        </Button>
                         <IconButton aria-label="Delete">
                           <Delete />
                         </IconButton>
