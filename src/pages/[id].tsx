@@ -34,6 +34,7 @@ import {
   Paper,
 } from "@mui/material";
 import ErrorMessage from "../components/ErrorMessage";
+import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 
 import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
@@ -80,7 +81,7 @@ export const Profile: NextPage<{
 
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
-  const [allowQuestion, setAllowQuestion] = useState<boolean>(false);
+  const [recieveQuestion, setRecieveQuestion] = useState<boolean>(false);
 
   const [value, setValue] = useState<string>("1");
 
@@ -182,7 +183,7 @@ export const Profile: NextPage<{
       );
       const querySnapshot = await getDocs(q);
       const lists: UserLists[] = [];
-      querySnapshot.forEach((doc) => {
+      const unsubscribe = querySnapshot.forEach((doc) => {
         console.log(doc.id, " => ", doc.data().name);
         if (doc.id !== params) {
           lists.push({ name: doc.data().name, id: doc.id });
@@ -200,11 +201,12 @@ export const Profile: NextPage<{
       if (docSnap.exists()) {
         setNameText(docSnap.data().name);
         setIntroductionText(docSnap.data().self_introduction);
-        setAllowQuestion(docSnap.data().recieve_question);
+        setRecieveQuestion(docSnap.data().recieve_question);
+        setintroductionCount(docSnap.data().self_introduction.length);
       }
     };
     fetchDisplayName();
-  });
+  }, [params]);
 
   const onProfileChange = async () => {
     const inputName = nameRef.current.value;
@@ -229,10 +231,6 @@ export const Profile: NextPage<{
     setProfileOpen(false);
   };
 
-  const check = (bool: boolean) => {
-    return bool;
-  };
-
   const copyTextToClipboard = (text: string) => {
     setClickCopy(false);
     navigator.clipboard.writeText(text).then(
@@ -250,7 +248,7 @@ export const Profile: NextPage<{
   };
 
   const onCheckBoxChange = async (bool: boolean) => {
-    setAllowQuestion(bool);
+    setRecieveQuestion(bool);
     const profileRef = doc(db, "display_name", params);
     await updateDoc(profileRef, {
       recieve_question: bool,
@@ -286,7 +284,7 @@ export const Profile: NextPage<{
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={allowQuestion}
+                          checked={recieveQuestion}
                           size="small"
                           onChange={(e) => onCheckBoxChange(e.target.checked)}
                         />
@@ -339,10 +337,19 @@ export const Profile: NextPage<{
       >
         <Box sx={{ width: "33vw" }}>
           <List>
+            <Link href="/dashboard" passHref>
+              <ListItem button>
+                <ListItemIcon>
+                  <ArrowBackSharpIcon />
+                </ListItemIcon>
+                <ListItemText primary="prev" />
+              </ListItem>
+            </Link>
             <ListItem button onClick={onLogout}>
               <ListItemIcon>
                 <LogoutIcon />
               </ListItemIcon>
+
               <ListItemText primary="logout" />
             </ListItem>
             {userLists.map((user) => {
@@ -381,11 +388,7 @@ export const Profile: NextPage<{
               </Button>
             </Grid>
             <Grid item>
-              <Button
-                variant="text"
-                onClick={onProfileChange}
-                disabled={check(false)}
-              >
+              <Button variant="text" onClick={onProfileChange} disabled={false}>
                 Save
               </Button>
             </Grid>
@@ -422,12 +425,12 @@ export const Profile: NextPage<{
           </Grid>
         </Box>
       </Modal>
-      {/* 質問ボタン */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           addPost();
         }}
+        autoComplete="off"
       >
         <label htmlFor="question">question</label>
         <input
