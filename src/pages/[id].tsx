@@ -26,7 +26,13 @@ import Modal from "@mui/material/Modal";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
-import { Checkbox, FormControlLabel, FormGroup, Paper } from "@mui/material";
+import {
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  ListItemButton,
+  Paper,
+} from "@mui/material";
 import ErrorMessage from "../components/ErrorMessage";
 
 import Tab from "@mui/material/Tab";
@@ -51,20 +57,13 @@ import { Posts, UserLists } from "../../types/type";
 import { useRouter } from "next/router";
 
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import Link from "next/link";
 
 export const Profile: NextPage<{
   params: string;
   postOwnerId: string;
-  displayName: string;
-  selfIntroduction: string;
-  recieveQuestion: boolean;
-}> = ({
-  params,
-  postOwnerId,
-  displayName,
-  selfIntroduction,
-  recieveQuestion,
-}) => {
+}> = ({ params, postOwnerId }) => {
   const nameRef = useRef<HTMLInputElement>(null!);
   const introductionRef = useRef<HTMLInputElement>(null!);
 
@@ -72,9 +71,8 @@ export const Profile: NextPage<{
   const [question, setQuestion] = useState<string>("");
   const [answer, setAnswer] = useState<string>("");
   const [posts, setPosts] = useState<Posts[]>([]);
-  const [introductionText, setIntroductionText] =
-    useState<string>(selfIntroduction);
-  const [nameText, setNameText] = useState<string>(displayName);
+  const [introductionText, setIntroductionText] = useState<string>("");
+  const [nameText, setNameText] = useState<string>("");
 
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
 
@@ -82,14 +80,14 @@ export const Profile: NextPage<{
 
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
-  const [allowQuestion, setAllowQuestion] = useState<boolean>(recieveQuestion);
+  const [allowQuestion, setAllowQuestion] = useState<boolean>(false);
 
   const [value, setValue] = useState<string>("1");
 
   const router = useRouter();
 
   const [introductionCount, setintroductionCount] = useState<number>(
-    introductionText.length
+    introductionText ? introductionText.length : 0
   );
 
   const [clickCopy, setClickCopy] = useState<boolean>(false);
@@ -195,6 +193,19 @@ export const Profile: NextPage<{
     fetchData();
   }, [params, postOwnerId]);
 
+  useEffect(() => {
+    const fetchDisplayName = async () => {
+      const docRef = doc(db, "display_name", params);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setNameText(docSnap.data().name);
+        setIntroductionText(docSnap.data().self_introduction);
+        setAllowQuestion(docSnap.data().recieve_question);
+      }
+    };
+    fetchDisplayName();
+  });
+
   const onProfileChange = async () => {
     const inputName = nameRef.current.value;
     const inputIntroduction = introductionRef.current.value;
@@ -249,12 +260,6 @@ export const Profile: NextPage<{
 
   const onAddAnswer = async () => {};
 
-  const bull = (
-    <Box
-      component="span"
-      sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
-    ></Box>
-  );
   return (
     <>
       {owner ? "i am owner" : "no owner"}
@@ -262,34 +267,20 @@ export const Profile: NextPage<{
       <Grid container alignItems="center" justifyContent="center">
         <Grid item>
           <Paper variant="outlined">
-            <Card sx={{ minWidth: 275 }}>
+            <Card sx={{ minWidth: 300, width: "40vh" }}>
               <CardContent sx={{ pb: 0 }}>
-                <Grid container alignItems="flex-end">
-                  <Grid item></Grid>
-                </Grid>
                 <Box sx={{ textAlign: "right" }}>
                   <IconButton onClick={() => setMenuOpen(!menuOpen)}>
                     <MenuIcon />
                   </IconButton>
                 </Box>
-                <Typography
-                  sx={{ fontSize: 14 }}
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  Word of the Day
+                <Typography variant="h5" sx={{ textAlign: "center" }}>
+                  {nameText}
                 </Typography>
-                <Typography variant="h5">
-                  be{bull}nev{bull}o{bull}lent
-                </Typography>
-                <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                  adjective
-                </Typography>
-                <Typography variant="body2">
-                  well meaning and kindly.
-                  <br />
-                  {'"a benevolent smile"'}
-                </Typography>
+                <Box sx={{ textAlign: "center", py: 1 }}>
+                  <AccountCircleIcon sx={{ fontSize: 50 }} />
+                </Box>
+                <Typography variant="body2">{introductionText}</Typography>
                 <Typography>
                   <FormGroup>
                     <FormControlLabel
@@ -334,9 +325,6 @@ export const Profile: NextPage<{
           </Paper>
         </Grid>
       </Grid>
-
-      <p>自己紹介　{introductionText}</p>
-      <p>名前　{nameText}</p>
       <Box sx={{ textAlign: "center" }}>
         <IconButton>
           <QuestionAnswerIcon sx={{ fontSize: 50 }} />
@@ -357,16 +345,21 @@ export const Profile: NextPage<{
               </ListItemIcon>
               <ListItemText primary="logout" />
             </ListItem>
-          </List>
-          <ul>
             {userLists.map((user) => {
               return (
-                <li key={user.id}>
-                  <p>{user.name}</p>
-                </li>
+                <ListItem key={user.id}>
+                  <Link href={user.id} passHref>
+                    <ListItemButton>
+                      <ListItemIcon>
+                        <AccountCircleIcon fontSize="large" />
+                      </ListItemIcon>
+                      <ListItemText primary={user.name} />
+                    </ListItemButton>
+                  </Link>
+                </ListItem>
               );
             })}
-          </ul>
+          </List>
         </Box>
       </Drawer>
       <Modal
@@ -493,9 +486,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       params: id,
       postOwnerId: docSnap.data().user,
-      displayName: docSnap.data().name,
-      selfIntroduction: docSnap.data().self_introduction || null,
-      recieveQuestion: docSnap.data().recieve_question,
     },
   };
 };
