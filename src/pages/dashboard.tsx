@@ -2,9 +2,8 @@ import type { GetServerSideProps, NextPage } from "next";
 import Link from "next/link";
 
 import nookies from "nookies";
-import { useRouter } from "next/router";
 
-import { logout } from "../../utils"; // 上記で実装したファイル
+import { onLogout } from "../utils/functions";
 import { firebaseAdmin } from "../../firebaseAdmin"; // この後に実装するファイル
 import { useEffect, useState } from "react";
 
@@ -34,30 +33,21 @@ import {
   where,
   onSnapshot,
 } from "firebase/firestore";
+import { checkNameValidation } from "../utils/validation";
 
 const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   email,
   uid,
 }) => {
-  const router = useRouter();
   const [name, setName] = useState<string>("");
   const [showButton, setShowButton] = useState<boolean>(false);
   const [displayNames, setDisplayNames] = useState<DisplayName[]>([]);
-  const [inputError, setInputError] = useState<boolean>(false);
-  const [helperText, setHelperText] = useState<string>("");
+  const [isNameError, setIsNameError] = useState<boolean>(false);
+  const [nameValidationText, setNameValidationText] = useState<string>("");
 
   type DisplayName = {
     id: string;
     name: string;
-  };
-
-  const onLogout = async () => {
-    const confirm = window.confirm("ログアウトしますか?");
-    if (!confirm) {
-      return;
-    }
-    await logout();
-    router.push("/");
   };
 
   const toggleInputButton = () => {
@@ -72,24 +62,16 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     const docRef = await deleteDoc(doc(db, "display_name", displayNameId));
   };
 
-  const onInputName = (InputName: string) => {
-    setName(InputName);
-    const len = InputName.length;
-    const min = 0;
-    const max = 20;
-    checkNameValidation(len > min, len < max);
-  };
+  const onInputName = (inputName: string) => {
+    setName(inputName);
+    const nameErrorText = checkNameValidation(inputName);
 
-  const checkNameValidation = (min: boolean, max: boolean) => {
-    if (!min) {
-      setHelperText("空白にしないでください");
-      setInputError(true);
-    } else if (!max) {
-      setHelperText("20文字以内で入力してください");
-      setInputError(true);
+    if (nameErrorText) {
+      setNameValidationText(nameErrorText);
+      setIsNameError(true);
     } else {
-      setHelperText("");
-      setInputError(false);
+      setNameValidationText("");
+      setIsNameError(false);
     }
   };
 
@@ -124,12 +106,12 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 
   useEffect(() => {
     if (displayNames.length >= 10) {
-      setHelperText("作成できるユーザーは10人までです");
-      setInputError(true);
+      setNameValidationText("作成できるユーザーは10人までです");
+      setIsNameError(true);
       return;
     }
-    setHelperText("");
-    setInputError(false);
+    setNameValidationText("");
+    setIsNameError(false);
   }, [displayNames]);
 
   return (
@@ -142,9 +124,9 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
         direction="column"
       >
         <Grid item>
-          <Grid container alignItems="center" spacing={2}>
+          <Grid container alignItems="center" direction="row" spacing={2}>
             <Grid item>
-              <h1>Welcome to About me</h1>
+              <h2>Welcome to About me</h2>
             </Grid>
             <Grid item>
               <Button variant="outlined" onClick={onLogout}>
@@ -170,7 +152,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
         </Grid>
         <Grid item>
           <Grid container alignItems="center">
-            {showButton ? (
+            {showButton && (
               <>
                 <form
                   onSubmit={(e) => {
@@ -179,13 +161,13 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
                   }}
                 >
                   <TextField
-                    error={inputError}
+                    error={isNameError}
                     type="text"
                     label="Name"
                     value={name}
                     placeholder="20文字以内"
                     variant="standard"
-                    helperText={helperText}
+                    helperText={nameValidationText}
                     onChange={(e) => onInputName(e.target.value)}
                     disabled={displayNames.length >= 10}
                   />
@@ -202,8 +184,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
                   </Button>
                 </form>
               </>
-            ) : (
-              <></>
             )}
           </Grid>
         </Grid>

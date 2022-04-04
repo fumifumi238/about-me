@@ -28,6 +28,5 @@ export default async function sessionApi(req: Req, res: Res) {
 
   // セッションIDをCookieに設定する
   setCookie({ res }, "session", sessionCookie, options);
-
   res.send(JSON.stringify({ status: "success" }));
 }
