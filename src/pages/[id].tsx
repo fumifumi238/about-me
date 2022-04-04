@@ -11,7 +11,8 @@ import {
   updateDoc,
   getDocs,
 } from "firebase/firestore";
-import { db, getFirebaseAuth, logout, timeStamp } from "../../utils";
+
+import { db, getFirebaseAuth, timeStamp } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useRef, useState } from "react";
 
@@ -26,13 +27,12 @@ import Modal from "@mui/material/Modal";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
-import {
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  ListItemButton,
-  Paper,
-} from "@mui/material";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
+import ListItemButton from "@mui/material/ListItemButton";
+import Paper from "@mui/material/Paper";
+
 import ErrorMessage from "../components/ErrorMessage";
 import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 
@@ -40,26 +40,30 @@ import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import {
-  Card,
-  CardActions,
-  CardContent,
-  Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-} from "@mui/material";
+
+import CardActions from "@mui/material/CardActions";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Grid from "@mui/material/Grid";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
 
 import Questions from "../components/Questions";
 import Counter from "../components/Counter";
 import { Posts, UserLists } from "../../types/type";
-import { useRouter } from "next/router";
 
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Link from "next/link";
+
+import { onLogout } from "../utils/functions";
+import {
+  checkIntroductionValidation,
+  checkNameValidation,
+} from "../utils/validation";
 
 export const Profile: NextPage<{
   params: string;
@@ -85,8 +89,6 @@ export const Profile: NextPage<{
 
   const [value, setValue] = useState<string>("1");
 
-  const router = useRouter();
-
   const [introductionCount, setintroductionCount] = useState<number>(
     introductionText ? introductionText.length : 0
   );
@@ -94,6 +96,14 @@ export const Profile: NextPage<{
   const [clickCopy, setClickCopy] = useState<boolean>(false);
 
   const [errorText, setErrorText] = useState<string>("");
+
+  const [isNameError, setIsNameError] = useState<boolean>(false);
+  const [nameValidationText, setNameValidationText] = useState<string>("");
+
+  const [isIntroductionError, setIsIntroductionError] =
+    useState<boolean>(false);
+  const [introductionValidationText, setIntroductionValidationText] =
+    useState<string>("");
 
   const url: string = `https://localhost:3000/${params}`;
 
@@ -112,15 +122,6 @@ export const Profile: NextPage<{
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-  };
-
-  const onLogout = async () => {
-    const confirm = window.confirm("ログアウトしますか?");
-    if (!confirm) {
-      return;
-    }
-    await logout();
-    router.push("/");
   };
 
   const addPost = async () => {
@@ -189,6 +190,7 @@ export const Profile: NextPage<{
           lists.push({ name: doc.data().name, id: doc.id });
         }
       });
+      unsubscribe;
       setUserLists([...lists]);
     };
     fetchData();
@@ -256,7 +258,31 @@ export const Profile: NextPage<{
     console.log(bool);
   };
 
-  const onAddAnswer = async () => {};
+  const onInputName = (inputName: string) => {
+    const nameErrorText = checkNameValidation(inputName);
+
+    if (nameErrorText) {
+      setNameValidationText(nameErrorText);
+      setIsNameError(true);
+    } else {
+      setNameValidationText("");
+      setIsNameError(false);
+    }
+  };
+
+  const onInputIntroduction = (inputIntroduction: string) => {
+    setintroductionCount(inputIntroduction.length);
+    const introductionErrorText =
+      checkIntroductionValidation(inputIntroduction);
+
+    if (introductionErrorText) {
+      setIntroductionValidationText(introductionErrorText);
+      setIsIntroductionError(true);
+    } else {
+      setIntroductionValidationText("");
+      setIsIntroductionError(false);
+    }
+  };
 
   return (
     <>
@@ -279,20 +305,18 @@ export const Profile: NextPage<{
                   <AccountCircleIcon sx={{ fontSize: 50 }} />
                 </Box>
                 <Typography variant="body2">{introductionText}</Typography>
-                <Typography>
-                  <FormGroup>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={recieveQuestion}
-                          size="small"
-                          onChange={(e) => onCheckBoxChange(e.target.checked)}
-                        />
-                      }
-                      label="他の人からの質問を受け取る"
-                    />
-                  </FormGroup>
-                </Typography>
+                <FormGroup>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={recieveQuestion}
+                        size="small"
+                        onChange={(e) => onCheckBoxChange(e.target.checked)}
+                      />
+                    }
+                    label="他の人からの質問を受け取る"
+                  />
+                </FormGroup>
               </CardContent>
               <CardActions>
                 <Button
@@ -388,7 +412,11 @@ export const Profile: NextPage<{
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="text" onClick={onProfileChange} disabled={false}>
+              <Button
+                variant="text"
+                onClick={onProfileChange}
+                disabled={!isNameError}
+              >
                 Save
               </Button>
             </Grid>
@@ -406,6 +434,9 @@ export const Profile: NextPage<{
                 defaultValue={nameText}
                 inputRef={nameRef}
                 id="nametext"
+                error={isNameError}
+                helperText={nameValidationText}
+                onChange={(e) => onInputName(e.target.value)}
               />
             </Grid>
             <Grid item>
@@ -416,7 +447,11 @@ export const Profile: NextPage<{
                 defaultValue={introductionText}
                 inputRef={introductionRef}
                 id="introductiontext"
-                onChange={(e) => setintroductionCount(e.target.value.length)}
+                error={isIntroductionError}
+                helperText={introductionValidationText}
+                onChange={(e) => {
+                  onInputIntroduction(e.target.value);
+                }}
               />
             </Grid>
             <Box sx={{ margin: "0 0 0 auto" }}>
