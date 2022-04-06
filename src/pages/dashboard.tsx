@@ -17,7 +17,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 
 import Delete from "@mui/icons-material/Delete";
@@ -34,6 +33,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { checkNameValidation } from "../utils/validation";
+import NameTextField from "../components/atoms/NameTextField";
 
 const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   email,
@@ -42,8 +42,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
   const [name, setName] = useState<string>("");
   const [showButton, setShowButton] = useState<boolean>(false);
   const [displayNames, setDisplayNames] = useState<DisplayName[]>([]);
-  const [isNameError, setIsNameError] = useState<boolean>(false);
-  const [nameValidationText, setNameValidationText] = useState<string>("");
 
   type DisplayName = {
     id: string;
@@ -62,19 +60,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     const docRef = await deleteDoc(doc(db, "display_name", displayNameId));
   };
 
-  const onInputName = (inputName: string) => {
-    setName(inputName);
-    const nameErrorText = checkNameValidation(inputName);
-
-    if (nameErrorText) {
-      setNameValidationText(nameErrorText);
-      setIsNameError(true);
-    } else {
-      setNameValidationText("");
-      setIsNameError(false);
-    }
-  };
-
   const addDisplayName = async () => {
     const docRef = await addDoc(collection(db, "display_name"), {
       name: name,
@@ -84,6 +69,9 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
     });
     console.log("Document written with ID: ", docRef.id);
     setName("");
+  };
+  const onNameChange = (text: string) => {
+    setName(text);
   };
 
   useEffect(() => {
@@ -103,16 +91,6 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       setDisplayNames([...lists]);
     });
   }, [uid]);
-
-  useEffect(() => {
-    if (displayNames.length >= 10) {
-      setNameValidationText("作成できるユーザーは10人までです");
-      setIsNameError(true);
-      return;
-    }
-    setNameValidationText("");
-    setIsNameError(false);
-  }, [displayNames]);
 
   return (
     <div>
@@ -160,16 +138,10 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
                     addDisplayName;
                   }}
                 >
-                  <TextField
-                    error={isNameError}
-                    type="text"
-                    label="Name"
-                    value={name}
-                    placeholder="20文字以内"
+                  <NameTextField
+                    name={name}
+                    onNameChange={onNameChange}
                     variant="standard"
-                    helperText={nameValidationText}
-                    onChange={(e) => onInputName(e.target.value)}
-                    disabled={displayNames.length >= 10}
                   />
                   <Button
                     variant="contained"
@@ -177,7 +149,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
                     onClick={addDisplayName}
                     type="submit"
                     disabled={
-                      !name || displayNames.length >= 10 || name.length > 20
+                      !!checkNameValidation(name) || displayNames.length >= 10
                     }
                   >
                     作成

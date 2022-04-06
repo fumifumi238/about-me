@@ -22,18 +22,15 @@ import Tooltip from "@mui/material/Tooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Modal from "@mui/material/Modal";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormGroup from "@mui/material/FormGroup";
 import ListItemButton from "@mui/material/ListItemButton";
 import Paper from "@mui/material/Paper";
 
-import ErrorMessage from "../components/ErrorMessage";
+import ErrorMessage from "../components/atoms/ErrorMessage";
 import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 
 import Tab from "@mui/material/Tab";
@@ -51,8 +48,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 
-import Questions from "../components/Questions";
-import Counter from "../components/Counter";
+import Questions from "../components/organisms/Questions";
 import { Posts, UserLists } from "../../types/type";
 
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
@@ -60,26 +56,20 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Link from "next/link";
 
 import { onLogout } from "../utils/functions";
-import {
-  checkIntroductionValidation,
-  checkNameValidation,
-} from "../utils/validation";
+import ProfileModal from "../components/templetes/ProfileModal";
 
 export const Profile: NextPage<{
   params: string;
   postOwnerId: string;
 }> = ({ params, postOwnerId }) => {
-  const nameRef = useRef<HTMLInputElement>(null!);
-  const introductionRef = useRef<HTMLInputElement>(null!);
-
   const [owner, setOwner] = useState<boolean>(false);
   const [question, setQuestion] = useState<string>("");
   const [answer, setAnswer] = useState<string>("");
   const [posts, setPosts] = useState<Posts[]>([]);
-  const [introductionText, setIntroductionText] = useState<string>("");
+
   const [nameText, setNameText] = useState<string>("");
 
-  const [profileOpen, setProfileOpen] = useState<boolean>(false);
+  const [introductionText, setIntroductionText] = useState<string>("");
 
   const [userLists, setUserLists] = useState<UserLists[]>([]);
 
@@ -89,23 +79,13 @@ export const Profile: NextPage<{
 
   const [value, setValue] = useState<string>("1");
 
-  const [introductionCount, setintroductionCount] = useState<number>(
-    introductionText ? introductionText.length : 0
-  );
-
-  const [clickCopy, setClickCopy] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
 
   const [errorText, setErrorText] = useState<string>("");
 
-  const [isNameError, setIsNameError] = useState<boolean>(false);
-  const [nameValidationText, setNameValidationText] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [isIntroductionError, setIsIntroductionError] =
-    useState<boolean>(false);
-  const [introductionValidationText, setIntroductionValidationText] =
-    useState<string>("");
-
-  const url: string = `https://localhost:3000/${params}`;
+  const url: string = `http://localhost:3000/${params}`;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -204,46 +184,21 @@ export const Profile: NextPage<{
         setNameText(docSnap.data().name);
         setIntroductionText(docSnap.data().self_introduction);
         setRecieveQuestion(docSnap.data().recieve_question);
-        setintroductionCount(docSnap.data().self_introduction.length);
       }
     };
     fetchDisplayName();
+    setLoading(true);
   }, [params]);
 
-  const onProfileChange = async () => {
-    const inputName = nameRef.current.value;
-    const inputIntroduction = introductionRef.current.value;
-
-    if (inputName === nameText && inputIntroduction === introductionText) {
-      setProfileOpen(false);
-      console.log("プロフィール変化なし");
-      return;
-    }
-    setNameText(inputName);
-    setIntroductionText(inputIntroduction);
-    console.log(inputName, inputIntroduction);
-
-    const profileRef = doc(db, "display_name", params);
-
-    await updateDoc(profileRef, {
-      name: inputName,
-      self_introduction: inputIntroduction,
-    });
-
-    setProfileOpen(false);
-  };
-
   const copyTextToClipboard = (text: string) => {
-    setClickCopy(false);
     navigator.clipboard.writeText(text).then(
       function () {
-        console.log("Async: Copying to clipboard was successful!");
         setErrorText("URL がコピーされました。");
-        setClickCopy(true);
+        setError(true);
       },
       function (err) {
         setErrorText("コピーできませんでした。");
-        setClickCopy(true);
+        setError(true);
         console.error("Async: Could not copy text: ", err);
       }
     );
@@ -258,36 +213,21 @@ export const Profile: NextPage<{
     console.log(bool);
   };
 
-  const onInputName = (inputName: string) => {
-    const nameErrorText = checkNameValidation(inputName);
-
-    if (nameErrorText) {
-      setNameValidationText(nameErrorText);
-      setIsNameError(true);
-    } else {
-      setNameValidationText("");
-      setIsNameError(false);
-    }
+  const errorMessageOpen = () => {
+    setError(!error);
   };
 
-  const onInputIntroduction = (inputIntroduction: string) => {
-    setintroductionCount(inputIntroduction.length);
-    const introductionErrorText =
-      checkIntroductionValidation(inputIntroduction);
-
-    if (introductionErrorText) {
-      setIntroductionValidationText(introductionErrorText);
-      setIsIntroductionError(true);
-    } else {
-      setIntroductionValidationText("");
-      setIsIntroductionError(false);
-    }
+  const updateIntroductionText = (text: string) => {
+    setIntroductionText(text);
   };
 
+  const updateNameText = (text: string) => {
+    setNameText(text);
+  };
   return (
     <>
       {owner ? "i am owner" : "no owner"}
-      {clickCopy && <ErrorMessage text={errorText} />}
+      <ErrorMessage text={errorText} error={error} open={errorMessageOpen} />
       <Grid container alignItems="center" justifyContent="center">
         <Grid item>
           <Paper variant="outlined">
@@ -319,13 +259,15 @@ export const Profile: NextPage<{
                 </FormGroup>
               </CardContent>
               <CardActions>
-                <Button
-                  onClick={() => setProfileOpen(true)}
-                  sx={{ margin: "auto" }}
-                  variant="outlined"
-                >
-                  プロフィールを編集する
-                </Button>
+                {loading && (
+                  <ProfileModal
+                    params={params}
+                    nameText={nameText}
+                    setNameText={updateNameText}
+                    introductionText={introductionText}
+                    setIntroductionText={updateIntroductionText}
+                  />
+                )}
               </CardActions>
               <CardActions>
                 <input
@@ -366,7 +308,7 @@ export const Profile: NextPage<{
                 <ListItemIcon>
                   <ArrowBackSharpIcon />
                 </ListItemIcon>
-                <ListItemText primary="prev" />
+                <ListItemText primary="back" />
               </ListItem>
             </Link>
             <ListItem button onClick={onLogout}>
@@ -393,73 +335,6 @@ export const Profile: NextPage<{
           </List>
         </Box>
       </Drawer>
-      <Modal
-        open={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Grid
-            container
-            direction="row"
-            justifyContent="space-between"
-            alignItems="flex-start"
-          >
-            <Grid item>
-              <Button variant="text" onClick={() => setProfileOpen(false)}>
-                Cancel
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="text"
-                onClick={onProfileChange}
-                disabled={!isNameError}
-              >
-                Save
-              </Button>
-            </Grid>
-          </Grid>
-          <Grid
-            container
-            direction="column"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Grid item py={2}>
-              <TextField
-                label="名前"
-                type="text"
-                defaultValue={nameText}
-                inputRef={nameRef}
-                id="nametext"
-                error={isNameError}
-                helperText={nameValidationText}
-                onChange={(e) => onInputName(e.target.value)}
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="自己紹介"
-                multiline
-                rows={10}
-                defaultValue={introductionText}
-                inputRef={introductionRef}
-                id="introductiontext"
-                error={isIntroductionError}
-                helperText={introductionValidationText}
-                onChange={(e) => {
-                  onInputIntroduction(e.target.value);
-                }}
-              />
-            </Grid>
-            <Box sx={{ margin: "0 0 0 auto" }}>
-              <Counter maxLength={200} currentLength={introductionCount} />
-            </Box>
-          </Grid>
-        </Box>
-      </Modal>
       <form
         onSubmit={(e) => {
           e.preventDefault();

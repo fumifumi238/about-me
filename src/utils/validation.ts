@@ -6,6 +6,8 @@ export const checkEmailValidation = (email: string) => {
   if (!regexCheck) {
     return regexCheckText;
   }
+
+  return false;
 };
 
 export const checkPasswordValidation = (password: string) => {
@@ -16,6 +18,8 @@ export const checkPasswordValidation = (password: string) => {
     const passwordErrorText = "パスワードは20字以内で入力してください";
     return passwordErrorText;
   }
+
+  return false;
 };
 
 export const checkPasswordConfirmValidation = (password: string) => {
@@ -23,6 +27,8 @@ export const checkPasswordConfirmValidation = (password: string) => {
     const passwordErrorText = "パスワードは8字以上で入力してください";
     return passwordErrorText;
   }
+
+  return false;
 };
 
 export const checkNameValidation = (name: string) => {
@@ -35,6 +41,8 @@ export const checkNameValidation = (name: string) => {
     const nameErrorText = "20文字以内で入力してください";
     return nameErrorText;
   }
+
+  return false;
 };
 
 export const checkIntroductionValidation = (introduction: string) => {
@@ -47,4 +55,6 @@ export const checkIntroductionValidation = (introduction: string) => {
     const introductionErrorText = "200文字以内で入力してください";
     return introductionErrorText;
   }
+
+  return false;
 };
