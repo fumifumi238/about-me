@@ -10,14 +10,14 @@ import {
   Grid,
 } from "@mui/material";
 import { useState } from "react";
-import { QuestionProps } from "../../types/type";
+import { QuestionProps } from "../../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Delete } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
 
-import Counter from "./Counter";
+import Counter from "../atoms/Counter";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../utils";
+import { db } from "../../../utils";
 
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
