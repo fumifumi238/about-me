@@ -1,23 +1,23 @@
-import {
-  Accordion,
-  AccordionSummary,
-  Typography,
-  AccordionDetails,
-  Box,
-  IconButton,
-  TextField,
-  Button,
-  Grid,
-} from "@mui/material";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import Typography from "@mui/material/Typography";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+
 import { useState } from "react";
 import { QuestionProps } from "../../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Delete } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "../atoms/Counter";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../utils";
+import { deleteDoc } from "firebase/firestore";
 
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
@@ -34,16 +34,21 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
     return post.answer === "";
   });
 
-  const onSave = async (id: string) => {
-    const confirm = window.confirm("この内容で良いですか?");
-    if (confirm) {
-      console.log(postAnswer);
-      const questionRef = doc(db, "posts", id);
-
-      await updateDoc(questionRef, {
-        answer: postAnswer,
-      });
+  const onDelete = async (id: string) => {
+    const confirm = window.confirm("本当に削除していいですか?");
+    if (!confirm) {
+      return;
     }
+    const docRef = await deleteDoc(doc(db, "posts", id));
+  };
+
+  const onSave = async (id: string) => {
+    console.log(postAnswer);
+    const questionRef = doc(db, "posts", id);
+
+    await updateDoc(questionRef, {
+      answer: postAnswer,
+    });
     setPostAnswer("");
   };
   return (
@@ -78,9 +83,11 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
               </AccordionSummary>
               <AccordionDetails>
                 {post.answer ? (
-                  <Typography sx={{ wordBreak: "break-word" }}>
-                    {post.answer}
-                  </Typography>
+                  <>
+                    <Typography sx={{ wordBreak: "break-word" }}>
+                      {post.answer}
+                    </Typography>
+                  </>
                 ) : (
                   <>
                     <Grid container justifyContent="center">
@@ -113,8 +120,11 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                         >
                           save
                         </Button>
-                        <IconButton aria-label="Delete">
-                          <Delete />
+                        <IconButton
+                          aria-label="Delete"
+                          onClick={() => onDelete(post.id)}
+                        >
+                          <DeleteIcon />
                         </IconButton>
                       </Box>
                     </Box>
@@ -125,8 +135,11 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                     <IconButton aria-label="Edit">
                       <EditIcon />
                     </IconButton>
-                    <IconButton aria-label="Delete">
-                      <Delete />
+                    <IconButton
+                      aria-label="Delete"
+                      onClick={() => onDelete(post.id)}
+                    >
+                      <DeleteIcon />
                     </IconButton>
                   </Box>
                 )}

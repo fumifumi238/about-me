@@ -58,3 +58,26 @@ export const checkIntroductionValidation = (introduction: string) => {
 
   return false;
 };
+
+export const checkQuestionValidation = (question: string) => {
+  if (!question) {
+    const questionErrorText = "空白にしないでください";
+    return questionErrorText;
+  }
+
+  if (question.length > 400) {
+    const questionErrorText = "400文字以内で入力してください";
+    return questionErrorText;
+  }
+
+  return false;
+};
+
+export const checkAnswerValidation = (answer: string) => {
+  if (answer.length > 400) {
+    const answerErrorText = "400文字以内で入力してください";
+    return answerErrorText;
+  }
+
+  return false;
+};
