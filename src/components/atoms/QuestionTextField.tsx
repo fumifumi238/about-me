@@ -36,7 +36,7 @@ const QuestionTextField: React.FC<Props> = ({
     <TextField
       error={isQuestionError}
       type="text"
-      label="自己紹介"
+      label="Question"
       defaultValue={question}
       placeholder="200文字以内"
       multiline

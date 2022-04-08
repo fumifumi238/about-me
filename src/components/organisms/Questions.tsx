@@ -15,6 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "../atoms/Counter";
+import QuestionModal from "../templetes/QuestionModal";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../utils";
 import { deleteDoc } from "firebase/firestore";
@@ -22,6 +23,8 @@ import { deleteDoc } from "firebase/firestore";
 const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
   const [postAnswer, setPostAnswer] = useState<string>("");
+  const [questionText, setQuestionText] = useState<string>("");
+  const [answerText, setAnswerText] = useState<string>("");
 
   const handleChange =
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -34,6 +37,22 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
     return post.answer === "";
   });
 
+  const findQuestionAnswer = (id: string) => {
+    const findPost = posts.filter((post) => post.id === id);
+    if (findPost) {
+      setQuestionText(findPost[0].question);
+      setAnswerText(findPost[0].answer ? findPost[0].answer : "");
+    }
+  };
+
+  const updateQuestionText = (text: string) => {
+    setQuestionText(text);
+  };
+
+  const updateAnswerText = (text: string) => {
+    setAnswerText(text);
+  };
+
   const onDelete = async (id: string) => {
     const confirm = window.confirm("本当に削除していいですか?");
     if (!confirm) {
@@ -43,7 +62,8 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
   };
 
   const onSave = async (id: string) => {
-    console.log(postAnswer);
+    console.log(findQuestionAnswer(id));
+    // console.log(postAnswer);
     const questionRef = doc(db, "posts", id);
 
     await updateDoc(questionRef, {
@@ -131,17 +151,23 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                   </>
                 )}
                 {post.answer && (
-                  <Box sx={{ textAlign: "right" }}>
-                    <IconButton aria-label="Edit">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      aria-label="Delete"
-                      onClick={() => onDelete(post.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
+                  <>
+                    <Box sx={{ textAlign: "right" }}>
+                      <QuestionModal
+                        id={post.id}
+                        questionText={post.question}
+                        answerText={post.answer}
+                        setQuestionText={updateQuestionText}
+                        setAnswerText={updateAnswerText}
+                      />
+                      <IconButton
+                        aria-label="Delete"
+                        onClick={() => onDelete(post.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </>
                 )}
               </AccordionDetails>
             </Accordion>
