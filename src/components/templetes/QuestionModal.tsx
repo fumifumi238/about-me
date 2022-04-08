@@ -141,7 +141,7 @@ const ProfileModal: React.FC<Props> = ({
       >
         プロフィールを編集する
       </Button>
-      <ModalForm tags={tags} setState={toggleButton} open={profileOpen} />
+      <ModalForm tags={tags} setState={toggleButton} open={profileOpen} />;
     </>
   );
 };

@@ -14,7 +14,7 @@ import {
 
 import { db, getFirebaseAuth, timeStamp } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -91,19 +91,6 @@ export const Profile: NextPage<{
     setValue(newValue);
   };
 
-  const style = {
-    position: "absolute" as "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "33%",
-    minWidth: 275,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-  };
-
   const addPost = async () => {
     console.log(question, answer);
     const docRef = await addDoc(collection(db, "posts"), {
@@ -157,11 +144,18 @@ export const Profile: NextPage<{
   }, [params]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const q = query(
-        collection(db, "display_name"),
-        where("user", "==", postOwnerId)
-      );
+    const auth = getFirebaseAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+        fetchData(uid);
+      } else {
+        return;
+      }
+    });
+
+    const fetchData = async (uid: string) => {
+      const q = query(collection(db, "display_name"), where("user", "==", uid));
       const querySnapshot = await getDocs(q);
       const lists: UserLists[] = [];
       const unsubscribe = querySnapshot.forEach((doc) => {
@@ -173,7 +167,6 @@ export const Profile: NextPage<{
       unsubscribe;
       setUserLists([...lists]);
     };
-    fetchData();
   }, [params, postOwnerId]);
 
   useEffect(() => {
