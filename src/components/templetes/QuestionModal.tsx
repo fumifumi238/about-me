@@ -4,78 +4,80 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { Box } from "@mui/system";
 import {
-  checkNameValidation,
-  checkIntroductionValidation,
+  checkQuestionValidation,
+  checkAnswerValidation,
 } from "../../utils/validation";
 import Counter from "../atoms/Counter";
-import IntroductionTextField from "../atoms/IntroductionTextField";
-import NameTextField from "../atoms/NameTextField";
+import AnswerTextField from "../atoms/AnswerTextField";
+import QuestionTextField from "../atoms/QuestionTextField";
 import { doc } from "@firebase/firestore";
 import { updateDoc } from "firebase/firestore";
 import { db } from "../../../utils";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
 
 type Props = {
-  params: string;
-  nameText: string;
-  setNameText: (text: string) => void;
-  introductionText: string;
-  setIntroductionText: (text: string) => void;
+  id: string;
+  questionText: string;
+  setQuestionText: (text: string) => void;
+  answerText: string;
+  setAnswerText: (text: string) => void;
 };
 
-const ProfileModal: React.FC<Props> = ({
-  params,
-  nameText,
-  setNameText,
-  introductionText,
-  setIntroductionText,
+const QuestionModal: React.FC<Props> = ({
+  id,
+  questionText,
+  setQuestionText,
+  answerText,
+  setAnswerText,
 }) => {
-  const [profileOpen, setProfileOpen] = useState<boolean>(false);
-  const [currentName, setCurrentName] = useState<string>("");
+  const [questionOpen, setQuestionOpen] = useState<boolean>(false);
+  const [currentQuestion, setCurrentQuestion] = useState<string>("");
 
-  const [currentIntroduction, setCurrentIntroduction] = useState<string>("");
+  const [currentAnswer, setCurrentAnswer] = useState<string>("");
 
   useEffect(() => {
-    setCurrentName(nameText);
-    setCurrentIntroduction(introductionText);
-  }, [nameText, introductionText]);
+    setCurrentQuestion(questionText);
+    setCurrentAnswer(answerText);
+  }, [questionText, answerText]);
 
   const toggleButton = () => {
-    setProfileOpen(!profileOpen);
+    setQuestionOpen(!questionOpen);
   };
 
-  const onCancelProfileChange = () => {
-    setCurrentName(nameText);
-    setCurrentIntroduction(introductionText);
-    setProfileOpen(false);
+  const onCancelQuestionChange = () => {
+    setCurrentQuestion(questionText);
+    setCurrentAnswer(answerText);
+    setQuestionOpen(false);
   };
 
-  const onNameChange = (text: string) => {
-    setCurrentName(text);
+  const onQuestionChange = (text: string) => {
+    setCurrentQuestion(text);
   };
 
-  const onIntroductionChange = (text: string) => {
-    setCurrentIntroduction(text);
+  const onAnswerChange = (text: string) => {
+    setCurrentAnswer(text);
   };
 
-  const onSaveProfileChange = async () => {
-    setProfileOpen(false);
+  const onSaveQuestionChange = async () => {
+    setQuestionOpen(false);
 
-    const inputName = currentName;
-    const inputIntroduction = currentIntroduction;
+    const inputQuestion = currentQuestion;
+    const inputAnswer = currentAnswer;
 
-    if (inputName === nameText && inputIntroduction === introductionText) {
+    if (inputQuestion === questionText && inputAnswer === answerText) {
       console.log("プロフィール変化なし");
       return;
     }
-    setNameText(inputName);
-    setIntroductionText(inputIntroduction);
-    console.log(inputName, inputIntroduction);
+    setQuestionText(inputQuestion);
+    setAnswerText(inputAnswer);
+    console.log(inputQuestion, inputAnswer);
 
-    const profileRef = doc(db, "display_name", params);
+    const questionRef = doc(db, "posts", id);
 
-    await updateDoc(profileRef, {
-      name: inputName,
-      self_introduction: inputIntroduction,
+    await updateDoc(questionRef, {
+      question: inputQuestion,
+      answer: inputAnswer,
     });
   };
 
@@ -88,17 +90,17 @@ const ProfileModal: React.FC<Props> = ({
         alignItems="flex-start"
       >
         <Grid item>
-          <Button variant="text" onClick={onCancelProfileChange}>
+          <Button variant="text" onClick={onCancelQuestionChange}>
             Cancel
           </Button>
         </Grid>
         <Grid item>
           <Button
             variant="text"
-            onClick={onSaveProfileChange}
+            onClick={onSaveQuestionChange}
             disabled={
-              !!checkNameValidation(currentName) ||
-              !!checkIntroductionValidation(currentIntroduction)
+              !!checkQuestionValidation(currentQuestion) ||
+              !!checkAnswerValidation(currentAnswer)
             }
           >
             Save
@@ -112,38 +114,38 @@ const ProfileModal: React.FC<Props> = ({
         alignItems="center"
       >
         <Grid item py={2}>
-          <NameTextField
-            name={nameText}
-            onNameChange={onNameChange}
+          <QuestionTextField
+            question={questionText}
+            onQuestionChange={onQuestionChange}
             variant="outlined"
-          />
-        </Grid>
-        <Grid item>
-          <IntroductionTextField
-            introduction={introductionText}
-            onIntroductionChange={onIntroductionChange}
-            variant="outlined"
-            rows={10}
+            rows={4}
           />
         </Grid>
         <Box sx={{ margin: "0 0 0 auto" }}>
-          <Counter maxLength={200} currentLength={currentIntroduction.length} />
+          <Counter maxLength={400} currentLength={currentQuestion.length} />
+        </Box>
+        <Grid item>
+          <AnswerTextField
+            answer={answerText}
+            onAnswerChange={onAnswerChange}
+            variant="outlined"
+            rows={4}
+          />
+        </Grid>
+        <Box sx={{ margin: "0 0 0 auto" }}>
+          <Counter maxLength={400} currentLength={currentAnswer.length} />
         </Box>
       </Grid>
     </>
   );
   return (
     <>
-      <Button
-        onClick={() => setProfileOpen(true)}
-        sx={{ margin: "auto" }}
-        variant="outlined"
-      >
-        プロフィールを編集する
-      </Button>
-      <ModalForm tags={tags} setState={toggleButton} open={profileOpen} />;
+      <IconButton aria-label="Edit" onClick={() => setQuestionOpen(true)}>
+        <EditIcon />
+      </IconButton>
+      <ModalForm tags={tags} setState={toggleButton} open={questionOpen} />
     </>
   );
 };
 
-export default ProfileModal;
+export default QuestionModal;
