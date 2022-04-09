@@ -66,7 +66,7 @@ const QuestionModal: React.FC<Props> = ({
     const inputAnswer = currentAnswer;
 
     if (inputQuestion === questionText && inputAnswer === answerText) {
-      console.log("プロフィール変化なし");
+      console.log("回答変化なし");
       return;
     }
     setQuestionText(inputQuestion);
