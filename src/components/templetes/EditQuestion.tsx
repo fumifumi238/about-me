@@ -24,7 +24,7 @@ type Props = {
   setAnswerText: (text: string) => void;
 };
 
-const QuestionModal: React.FC<Props> = ({
+const EditQuestion: React.FC<Props> = ({
   id,
   questionText,
   setQuestionText,
@@ -72,13 +72,14 @@ const QuestionModal: React.FC<Props> = ({
     setQuestionText(inputQuestion);
     setAnswerText(inputAnswer);
     console.log(inputQuestion, inputAnswer);
+    if (id) {
+      const questionRef = doc(db, "posts", id);
 
-    const questionRef = doc(db, "posts", id);
-
-    await updateDoc(questionRef, {
-      question: inputQuestion,
-      answer: inputAnswer,
-    });
+      await updateDoc(questionRef, {
+        question: inputQuestion,
+        answer: inputAnswer,
+      });
+    }
   };
 
   const tags = (
@@ -140,7 +141,7 @@ const QuestionModal: React.FC<Props> = ({
   );
   return (
     <>
-      <IconButton aria-label="Edit" onClick={() => setQuestionOpen(true)}>
+      <IconButton onClick={() => setQuestionOpen(true)}>
         <EditIcon />
       </IconButton>
       <ModalForm tags={tags} setState={toggleButton} open={questionOpen} />
@@ -148,4 +149,4 @@ const QuestionModal: React.FC<Props> = ({
   );
 };
 
-export default QuestionModal;
+export default EditQuestion;

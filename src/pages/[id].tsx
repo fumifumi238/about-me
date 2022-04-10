@@ -57,23 +57,20 @@ import Link from "next/link";
 
 import { onLogout } from "../utils/functions";
 import ProfileModal from "../components/templetes/ProfileModal";
+import CreateQuestion from "../components/templetes/CreateQuestion";
+import MenuDrawer from "../components/organisms/MenuDrawer";
 
 export const Profile: NextPage<{
   params: string;
   postOwnerId: string;
 }> = ({ params, postOwnerId }) => {
   const [owner, setOwner] = useState<boolean>(false);
-  const [question, setQuestion] = useState<string>("");
-  const [answer, setAnswer] = useState<string>("");
+  const [uid, setUid] = useState<string>("");
   const [posts, setPosts] = useState<Posts[]>([]);
 
   const [nameText, setNameText] = useState<string>("");
 
   const [introductionText, setIntroductionText] = useState<string>("");
-
-  const [userLists, setUserLists] = useState<UserLists[]>([]);
-
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const [recieveQuestion, setRecieveQuestion] = useState<boolean>(false);
 
@@ -91,28 +88,14 @@ export const Profile: NextPage<{
     setValue(newValue);
   };
 
-  const addPost = async () => {
-    console.log(question, answer);
-    const docRef = await addDoc(collection(db, "posts"), {
-      question: question,
-      answer: answer,
-      user: postOwnerId,
-      display_name: params,
-      timestamp: timeStamp,
-    });
-    console.log("Document written with ID: ", docRef);
-    setQuestion("");
-    setAnswer("");
-  };
-
   useEffect(() => {
     const auth = getFirebaseAuth();
     onAuthStateChanged(auth, (user) => {
-      if (user && user.uid === postOwnerId) {
-        setOwner(true);
-        console.log(user.uid, "you are owner");
-      } else {
-        console.log("no user");
+      if (user) {
+        if (user.uid === postOwnerId) {
+          setOwner(true);
+        }
+        setUid(user.uid);
       }
     });
   }, [postOwnerId]);
@@ -142,32 +125,6 @@ export const Profile: NextPage<{
       setPosts([...lists]);
     });
   }, [params]);
-
-  useEffect(() => {
-    const auth = getFirebaseAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid;
-        fetchData(uid);
-      } else {
-        return;
-      }
-    });
-
-    const fetchData = async (uid: string) => {
-      const q = query(collection(db, "display_name"), where("user", "==", uid));
-      const querySnapshot = await getDocs(q);
-      const lists: UserLists[] = [];
-      const unsubscribe = querySnapshot.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data().name);
-        if (doc.id !== params) {
-          lists.push({ name: doc.data().name, id: doc.id });
-        }
-      });
-      unsubscribe;
-      setUserLists([...lists]);
-    };
-  }, [params, postOwnerId]);
 
   useEffect(() => {
     const fetchDisplayName = async () => {
@@ -219,17 +176,18 @@ export const Profile: NextPage<{
   };
   return (
     <>
-      {owner ? "i am owner" : "no owner"}
       <ErrorMessage text={errorText} error={error} open={errorMessageOpen} />
-      <Grid container alignItems="center" justifyContent="center">
+      <Grid container alignItems="center" justifyContent="center" mt={2}>
         <Grid item>
           <Paper variant="outlined">
             <Card sx={{ minWidth: 300, width: "40vh" }}>
               <CardContent sx={{ pb: 0 }}>
                 <Box sx={{ textAlign: "right" }}>
-                  <IconButton onClick={() => setMenuOpen(!menuOpen)}>
-                    <MenuIcon />
-                  </IconButton>
+                  <MenuDrawer
+                    params={params}
+                    postOwnerId={postOwnerId}
+                    currentUser={uid}
+                  />
                 </Box>
                 <Typography variant="h5" sx={{ textAlign: "center" }}>
                   {nameText}
@@ -238,21 +196,23 @@ export const Profile: NextPage<{
                   <AccountCircleIcon sx={{ fontSize: 50 }} />
                 </Box>
                 <Typography variant="body2">{introductionText}</Typography>
-                <FormGroup>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={recieveQuestion}
-                        size="small"
-                        onChange={(e) => onCheckBoxChange(e.target.checked)}
-                      />
-                    }
-                    label="他の人からの質問を受け取る"
-                  />
-                </FormGroup>
+                {owner && (
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={recieveQuestion}
+                          size="small"
+                          onChange={(e) => onCheckBoxChange(e.target.checked)}
+                        />
+                      }
+                      label="他の人からの質問を受け取る"
+                    />
+                  </FormGroup>
+                )}
               </CardContent>
               <CardActions>
-                {loading && (
+                {loading && owner && (
                   <ProfileModal
                     params={params}
                     nameText={nameText}
@@ -283,76 +243,13 @@ export const Profile: NextPage<{
         </Grid>
       </Grid>
       <Box sx={{ textAlign: "center" }}>
-        <IconButton>
-          <QuestionAnswerIcon sx={{ fontSize: 50 }} />
-        </IconButton>
-        {/* 質問募集中 */}
+        <CreateQuestion
+          owner={true}
+          params={params}
+          postOwnerId={postOwnerId}
+        />
         <Typography variant="h5">質問を投稿しよう</Typography>
       </Box>
-      <Drawer
-        anchor="right"
-        open={menuOpen}
-        onClose={() => setMenuOpen(!menuOpen)}
-      >
-        <Box sx={{ width: "33vw" }}>
-          <List>
-            <Link href="/dashboard" passHref>
-              <ListItem button>
-                <ListItemIcon>
-                  <ArrowBackSharpIcon />
-                </ListItemIcon>
-                <ListItemText primary="back" />
-              </ListItem>
-            </Link>
-            <ListItem button onClick={onLogout}>
-              <ListItemIcon>
-                <LogoutIcon />
-              </ListItemIcon>
-
-              <ListItemText primary="logout" />
-            </ListItem>
-            {userLists.map((user) => {
-              return (
-                <ListItem key={user.id}>
-                  <Link href={user.id} passHref>
-                    <ListItemButton>
-                      <ListItemIcon>
-                        <AccountCircleIcon fontSize="large" />
-                      </ListItemIcon>
-                      <ListItemText primary={user.name} />
-                    </ListItemButton>
-                  </Link>
-                </ListItem>
-              );
-            })}
-          </List>
-        </Box>
-      </Drawer>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          addPost();
-        }}
-        autoComplete="off"
-      >
-        <label htmlFor="question">question</label>
-        <input
-          type="text"
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-        />
-        <label htmlFor="answer">answer</label>
-        <input
-          type="text"
-          id="answer"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-        />
-        <button type="submit" disabled={!question}>
-          submit
-        </button>
-      </form>
       <Box sx={{ width: "100%", typography: "body1" }}>
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
