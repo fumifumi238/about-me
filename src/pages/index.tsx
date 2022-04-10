@@ -1,94 +1,19 @@
-import { FormEvent } from "react";
-
 import { GetServerSideProps, NextPage } from "next";
-import { useState } from "react";
-import { useRouter } from "next/router";
 
-import { login, signUp } from "../../utils"; // 上記で実装したファイル
 import nookies from "nookies";
-import EmailTextField from "../components/atoms/EmailTextField";
-import PasswordTextField from "../components/atoms/PasswordTextField";
-
-import {
-  checkPasswordValidation,
-  checkEmailValidation,
-} from "../utils/validation";
 
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 
 import { firebaseAdmin } from "../../firebaseAdmin";
-import ErrorMessage from "../components/atoms/ErrorMessage";
+import LoginForm from "../components/templetes/LoginForm";
+import LoginModal from "../components/templetes/LoginModal";
 
 const Home: NextPage = () => {
-  const useStyles = {
-    signInNegative: {
-      borderBottom: 1,
-      borderLeft: 1,
-      opacity: 0.5,
-    },
-    signUpNegative: {
-      borderBottom: 1,
-      borderRight: 1,
-      opacity: 0.5,
-    },
-  };
-  const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [passwordConfirm, setPasswordConfirm] = useState<string>("");
-  const [signInActive, setSignInActive] = useState<boolean>(true);
-  const [error, setError] = useState<boolean>(false);
-  const [errorText, setErrorText] = useState<string>("");
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    if (signInActive) {
-      const validation = checkPasswordConfirmValidation();
-      if (!validation) {
-        await signUp(email, password);
-        router.push("/dashboard");
-      }
-      return;
-    }
-    await login(email, password); // email・passwordを使ってログイン
-    router.push("/dashboard"); // ダッシュボードページへ遷移させる
-  };
-
-  const onEmailChange = (text: string) => {
-    setEmail(text);
-  };
-
-  const onPasswordChange = (text: string) => {
-    setPassword(text);
-  };
-
-  const onPasswordConfirmChange = (text: string) => {
-    setPasswordConfirm(text);
-  };
-  const checkPasswordConfirmValidation = () => {
-    if (password !== passwordConfirm) {
-      setError(true);
-      setErrorText("パスワードが一致しません");
-      return true;
-    }
-
-    return false;
-  };
-
-  const errorMessageOpen = () => {
-    setError(!error);
-  };
-
   return (
     <div>
-      <ErrorMessage error={error} text={errorText} open={errorMessageOpen} />
       <h1>About me</h1>
-      <Box></Box>
       <Grid
         container
         justifyContent="center"
@@ -98,74 +23,7 @@ const Home: NextPage = () => {
         <Grid item>
           <Card variant="outlined" sx={{ border: 1 }}>
             <CardContent>
-              <Grid container spacing={3}>
-                <Grid
-                  item
-                  xs={6}
-                  sx={signInActive ? useStyles.signUpNegative : null}
-                  onClick={() => setSignInActive(false)}
-                >
-                  <Typography variant="h5">ログイン</Typography>
-                </Grid>
-                <Grid
-                  item
-                  xs={6}
-                  sx={signInActive ? null : useStyles.signInNegative}
-                  onClick={() => setSignInActive(true)}
-                >
-                  <Typography variant="h5">新規登録</Typography>
-                </Grid>
-              </Grid>
-              <Grid
-                container
-                direction="column"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <form onSubmit={onSubmit}>
-                  <Grid item py={3} mx={2}>
-                    <EmailTextField
-                      email={email}
-                      onEmailChange={onEmailChange}
-                      variant="standard"
-                    />
-                  </Grid>
-                  <Grid item mx={2} pt={1}>
-                    <PasswordTextField
-                      password={password}
-                      onPasswordChange={onPasswordChange}
-                      variant="standard"
-                      label="パスワード"
-                    />
-                  </Grid>
-                  {signInActive && (
-                    <Grid item mx={2} pt={4}>
-                      <PasswordTextField
-                        password={passwordConfirm}
-                        onPasswordChange={onPasswordConfirmChange}
-                        variant="standard"
-                        label="パスワード(確認用)"
-                      />
-                    </Grid>
-                  )}
-                  <Grid item pt={3}>
-                    <div style={{ textAlign: "center" }}>
-                      <Button
-                        variant="contained"
-                        disabled={
-                          !!checkEmailValidation(email) ||
-                          !!checkPasswordValidation(password)
-                        }
-                        size="large"
-                        type="submit"
-                        onClick={onSubmit}
-                      >
-                        {signInActive ? "新規登録" : "ログイン"}
-                      </Button>
-                    </div>
-                  </Grid>
-                </form>
-              </Grid>
+              <LoginForm />
             </CardContent>
           </Card>
         </Grid>

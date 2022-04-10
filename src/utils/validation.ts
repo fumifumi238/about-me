@@ -22,15 +22,6 @@ export const checkPasswordValidation = (password: string) => {
   return false;
 };
 
-export const checkPasswordConfirmValidation = (password: string) => {
-  if (password.length < 8) {
-    const passwordErrorText = "パスワードは8字以上で入力してください";
-    return passwordErrorText;
-  }
-
-  return false;
-};
-
 export const checkNameValidation = (name: string) => {
   if (!name) {
     const nameErrorText = "空白にしないでください";

@@ -15,7 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "../atoms/Counter";
-import QuestionModal from "../templetes/QuestionModal";
+import EditQuestion from "../templetes/EditQuestion";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../utils";
 import { deleteDoc } from "firebase/firestore";
@@ -63,7 +63,7 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
 
   const onSave = async (id: string) => {
     console.log(findQuestionAnswer(id));
-    // console.log(postAnswer);
+
     const questionRef = doc(db, "posts", id);
 
     await updateDoc(questionRef, {
@@ -153,7 +153,7 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                 {post.answer && (
                   <>
                     <Box sx={{ textAlign: "right" }}>
-                      <QuestionModal
+                      <EditQuestion
                         id={post.id}
                         questionText={post.question}
                         answerText={post.answer}
