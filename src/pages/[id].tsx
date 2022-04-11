@@ -244,11 +244,12 @@ export const Profile: NextPage<{
       </Grid>
       <Box sx={{ textAlign: "center" }}>
         <CreateQuestion
-          owner={true}
+          owner={owner}
           params={params}
           postOwnerId={postOwnerId}
+          uid={uid}
+          recieveQuestion={recieveQuestion}
         />
-        <Typography variant="h5">質問を投稿しよう</Typography>
       </Box>
       <Box sx={{ width: "100%", typography: "body1" }}>
         <TabContext value={value}>

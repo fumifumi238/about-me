@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ModalForm from "../organisms/ModalForm";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -10,19 +10,20 @@ import {
 import Counter from "../atoms/Counter";
 import AnswerTextField from "../atoms/AnswerTextField";
 import QuestionTextField from "../atoms/QuestionTextField";
-import { addDoc, collection, doc } from "@firebase/firestore";
-import { updateDoc } from "firebase/firestore";
+import { addDoc, collection } from "@firebase/firestore";
 import { db, timeStamp } from "../../../utils";
 import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
 
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import Typography from "@mui/material/Typography";
 
 const CreateQuestion: React.FC<{
   owner: boolean;
   params: string;
   postOwnerId: string;
-}> = ({ owner, params, postOwnerId }) => {
+  uid: string;
+  recieveQuestion: boolean;
+}> = ({ owner, params, postOwnerId, uid, recieveQuestion }) => {
   const [questionOpen, setQuestionOpen] = useState<boolean>(false);
   const [currentQuestion, setCurrentQuestion] = useState<string>("");
 
@@ -56,6 +57,20 @@ const CreateQuestion: React.FC<{
     setCurrentAnswer("");
   };
 
+  const QuestionIcon = () => {
+    if (owner || (uid && recieveQuestion)) {
+      return (
+        <>
+          <IconButton onClick={() => setQuestionOpen(true)}>
+            <QuestionAnswerIcon sx={{ fontSize: 50 }} />
+          </IconButton>
+          <Typography variant="h5">質問を投稿しよう</Typography>
+        </>
+      );
+    }
+
+    return <></>;
+  };
   const tags = (
     <>
       <Grid
@@ -119,9 +134,7 @@ const CreateQuestion: React.FC<{
   );
   return (
     <>
-      <IconButton onClick={() => setQuestionOpen(true)}>
-        <QuestionAnswerIcon sx={{ fontSize: 50 }} />
-      </IconButton>
+      <QuestionIcon />
       <ModalForm
         tags={tags}
         setState={onCancelQuestionChange}

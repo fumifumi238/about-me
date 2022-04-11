@@ -12,7 +12,6 @@ import { useState } from "react";
 import { QuestionProps } from "../../../types/type";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 
 import Counter from "../atoms/Counter";
 import EditQuestion from "../templetes/EditQuestion";
