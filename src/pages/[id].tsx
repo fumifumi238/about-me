@@ -2,22 +2,18 @@ import { GetServerSideProps, NextPage } from "next";
 import {
   doc,
   getDoc,
-  addDoc,
   collection,
   query,
   where,
   onSnapshot,
   orderBy,
   updateDoc,
-  getDocs,
 } from "firebase/firestore";
 
-import { db, getFirebaseAuth, timeStamp } from "../../utils";
+import { db, getFirebaseAuth } from "../../utils";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 
-import LogoutIcon from "@mui/icons-material/Logout";
-import MenuIcon from "@mui/icons-material/Menu";
 import Tooltip from "@mui/material/Tooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
@@ -42,18 +38,12 @@ import CardActions from "@mui/material/CardActions";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 
 import Questions from "../components/organisms/Questions";
 import { Posts, UserLists } from "../../types/type";
 
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import Link from "next/link";
 
 import { onLogout } from "../utils/functions";
 import ProfileModal from "../components/templetes/ProfileModal";
@@ -252,24 +242,35 @@ export const Profile: NextPage<{
         />
       </Box>
       <Box sx={{ width: "100%", typography: "body1" }}>
-        <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleChange}
-              aria-label="lab API tabs example"
-              centered
-            >
-              <Tab label="回答済み" value="1" />
-              <Tab label="未回答" value="2" />
-            </TabList>
-          </Box>
-          <TabPanel value="1">
-            <Questions posts={posts} answered={true} />
-          </TabPanel>
-          <TabPanel value="2">
-            <Questions posts={posts} answered={false} />
-          </TabPanel>
-        </TabContext>
+        {owner ? (
+          <TabContext value={value}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <TabList
+                onChange={handleChange}
+                aria-label="lab API tabs example"
+                centered
+              >
+                <Tab label="回答済み" value="1" />
+                <Tab label="未回答" value="2" />
+              </TabList>
+            </Box>
+            <TabPanel value="1">
+              <Questions posts={posts} answered={true} owner={true} />
+            </TabPanel>
+            <TabPanel value="2">
+              <Questions posts={posts} answered={false} owner={true} />
+            </TabPanel>
+          </TabContext>
+        ) : (
+          <>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", my: 3 }}>
+              <Typography sx={{ textAlign: "center" }} variant="h4">
+                回答済みの質問
+              </Typography>
+            </Box>
+            <Questions posts={posts} answered={true} owner={false} />
+          </>
+        )}
       </Box>
     </>
   );

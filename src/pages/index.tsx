@@ -5,15 +5,17 @@ import nookies from "nookies";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 
 import { firebaseAdmin } from "../../firebaseAdmin";
 import LoginForm from "../components/templetes/LoginForm";
-import LoginModal from "../components/templetes/LoginModal";
 
 const Home: NextPage = () => {
   return (
     <div>
-      <h1>About me</h1>
+      <Typography variant="h2" sx={{ textAlign: "center" }}>
+        Welcome to About me
+      </Typography>
       <Grid
         container
         justifyContent="center"

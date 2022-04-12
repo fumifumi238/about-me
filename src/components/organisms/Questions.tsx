@@ -19,7 +19,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../utils";
 import { deleteDoc } from "firebase/firestore";
 
-const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
+const Questions: React.FC<QuestionProps> = ({ posts, answered, owner }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
   const [postAnswer, setPostAnswer] = useState<string>("");
   const [questionText, setQuestionText] = useState<string>("");
@@ -149,7 +149,7 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered }) => {
                     </Box>
                   </>
                 )}
-                {post.answer && (
+                {post.answer && owner && (
                   <>
                     <Box sx={{ textAlign: "right" }}>
                       <EditQuestion

@@ -21,7 +21,7 @@ import Button from "@mui/material/Button";
 
 import Delete from "@mui/icons-material/Delete";
 
-import { db } from "../../utils";
+import { db, timeStamp } from "../../utils";
 
 import {
   collection,
@@ -31,6 +31,7 @@ import {
   query,
   where,
   onSnapshot,
+  orderBy
 } from "firebase/firestore";
 import { checkNameValidation } from "../utils/validation";
 import NameTextField from "../components/atoms/NameTextField";
@@ -66,6 +67,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       user: uid,
       recieve_question: false,
       self_introduction: `I am ${name} Nice to meet you`,
+      timestamp: timeStamp,
     });
     console.log("Document written with ID: ", docRef.id);
     setName("");
@@ -76,7 +78,11 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 
   useEffect(() => {
     const displayNameRef = collection(db, "display_name");
-    const q = query(displayNameRef, where("user", "==", uid));
+    const q = query(
+      displayNameRef,
+      where("user", "==", uid),
+      orderBy("timestamp", "desc")
+    );
 
     onSnapshot(q, (querySnapshot) => {
       const lists: DisplayName[] = [];
