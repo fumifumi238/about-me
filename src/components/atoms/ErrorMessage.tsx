@@ -1,5 +1,4 @@
 import Snackbar from "@mui/material/Snackbar";
-import { useEffect, useState } from "react";
 
 const ErrorMessage: React.FC<{
   text: string;

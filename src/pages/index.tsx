@@ -37,14 +37,12 @@ const Home: NextPage = () => {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const cookies = nookies.get(ctx);
   const session = cookies.session || "";
-  // セッションIDを検証して、認証情報を取得する
+
   const user = await firebaseAdmin
     .auth()
     .verifySessionCookie(session, true)
     .catch(() => null);
 
-  // 認証情報が無い場合は、ログイン画面へ遷移させる
-  // ここfoodにも実装する
   if (user) {
     return {
       redirect: {
@@ -53,8 +51,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
-  console.log("user");
-  // uidそのままは危険化かも
+
   return {
     props: {},
   };

@@ -1,6 +1,4 @@
-import { Modal, Grid, Button, TextField, Box } from "@mui/material";
-import { useState } from "react";
-import Counter from "../atoms/Counter";
+import { Modal, Grid, Box } from "@mui/material";
 
 type Props = {
   setState: () => void;

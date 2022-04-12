@@ -36,14 +36,6 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered, owner }) => {
     return post.answer === "";
   });
 
-  const findQuestionAnswer = (id: string) => {
-    const findPost = posts.filter((post) => post.id === id);
-    if (findPost) {
-      setQuestionText(findPost[0].question);
-      setAnswerText(findPost[0].answer ? findPost[0].answer : "");
-    }
-  };
-
   const updateQuestionText = (text: string) => {
     setQuestionText(text);
   };
@@ -61,8 +53,6 @@ const Questions: React.FC<QuestionProps> = ({ posts, answered, owner }) => {
   };
 
   const onSave = async (id: string) => {
-    console.log(findQuestionAnswer(id));
-
     const questionRef = doc(db, "posts", id);
 
     await updateDoc(questionRef, {

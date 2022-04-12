@@ -1,12 +1,11 @@
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
-  IconButton,
-} from "@mui/material";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemButton from "@mui/material/ListItemButton";
+import IconButton from "@mui/material/IconButton";
+
 import { Box } from "@mui/system";
 import { onAuthStateChanged } from "firebase/auth";
 import { query, collection, where, getDocs, orderBy } from "firebase/firestore";
@@ -16,6 +15,7 @@ import { UserLists } from "../../../types/type";
 import { getFirebaseAuth, db } from "../../../utils";
 import { onLogout } from "../../utils/functions";
 import LoginModal from "../templetes/LoginModal";
+
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -50,7 +50,6 @@ const MenuDrawer: React.FC<Props> = ({ params, postOwnerId, currentUser }) => {
       const querySnapshot = await getDocs(q);
       const lists: UserLists[] = [];
       const unsubscribe = querySnapshot.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data().name);
         if (doc.id !== params) {
           lists.push({ name: doc.data().name, id: doc.id });
         }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import nookies from "nookies";
 
 import { onLogout } from "../utils/functions";
-import { firebaseAdmin } from "../../firebaseAdmin"; // この後に実装するファイル
+import { firebaseAdmin } from "../../firebaseAdmin";
 import { useEffect, useState } from "react";
 
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -31,7 +31,7 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy
+  orderBy,
 } from "firebase/firestore";
 import { checkNameValidation } from "../utils/validation";
 import NameTextField from "../components/atoms/NameTextField";
@@ -69,7 +69,7 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
       self_introduction: `I am ${name} Nice to meet you`,
       timestamp: timeStamp,
     });
-    console.log("Document written with ID: ", docRef.id);
+
     setName("");
   };
   const onNameChange = (text: string) => {
@@ -93,14 +93,12 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
         });
       });
 
-      console.log("Current cities in CA: ", lists.join(", "));
       setDisplayNames([...lists]);
     });
   }, [uid]);
 
   return (
     <div>
-      {/* タイムスタンプを付ける */}
       <Grid
         container
         justifyContent="center"
@@ -207,14 +205,12 @@ const DashboardPage: NextPage<{ email: string; uid: string }> = ({
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const cookies = nookies.get(ctx);
   const session = cookies.session || "";
-  // セッションIDを検証して、認証情報を取得する
+
   const user = await firebaseAdmin
     .auth()
     .verifySessionCookie(session, true)
     .catch(() => null);
 
-  // 認証情報が無い場合は、ログイン画面へ遷移させる
-  // ここfoodにも実装する
   if (!user) {
     return {
       redirect: {
@@ -223,8 +219,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
-  console.log("user");
-  // uidそのままは危険化かも
+
   return {
     props: {
       email: user.email,

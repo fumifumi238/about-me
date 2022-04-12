@@ -52,7 +52,7 @@ const CreateQuestion: React.FC<{
       display_name: params,
       timestamp: timeStamp,
     });
-    console.log("Document written with ID: ", docRef);
+
     setCurrentQuestion("");
     setCurrentAnswer("");
   };
