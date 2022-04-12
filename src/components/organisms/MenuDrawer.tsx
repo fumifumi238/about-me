@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { onAuthStateChanged } from "firebase/auth";
-import { query, collection, where, getDocs } from "firebase/firestore";
+import { query, collection, where, getDocs, orderBy } from "firebase/firestore";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { UserLists } from "../../../types/type";
@@ -42,7 +42,11 @@ const MenuDrawer: React.FC<Props> = ({ params, postOwnerId, currentUser }) => {
     });
 
     const fetchData = async (uid: string) => {
-      const q = query(collection(db, "display_name"), where("user", "==", uid));
+      const q = query(
+        collection(db, "display_name"),
+        where("user", "==", uid),
+        orderBy("timestamp", "desc")
+      );
       const querySnapshot = await getDocs(q);
       const lists: UserLists[] = [];
       const unsubscribe = querySnapshot.forEach((doc) => {

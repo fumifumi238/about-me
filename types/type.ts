@@ -17,4 +17,5 @@ export type UserLists = {
 export type QuestionProps = {
   posts: Posts[];
   answered: boolean;
+  owner: boolean;
 };
