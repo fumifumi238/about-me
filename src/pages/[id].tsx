@@ -72,7 +72,7 @@ export const Profile: NextPage<{
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const url: string = `http://localhost:3000/${params}`;
+  const url: string = `https://about-me-omega-gules.vercel.app/${params}`;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
